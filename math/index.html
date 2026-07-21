@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kid Math Practice</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <nav class="tabs" aria-label="Subjects">
+      <a class="tab active" href="../math/" aria-current="page">Mathematics</a>
+      <a class="tab" href="../words/">Words</a>
+    </nav>
+    <header class="top-bar">
+      <div class="timer-wrap" id="timerWrap" hidden>
+        <span class="timer-label">Time</span>
+        <span class="timer" id="timer" aria-live="polite">00:00</span>
+      </div>
+      <div class="top-bar-spacer"></div>
+      <div class="score-wrap">
+        <span class="score-label">Score</span>
+        <span class="score" id="score" aria-live="polite">0</span>
+      </div>
+      <div class="score-wrap wrong-wrap" id="wrongWrap" hidden>
+        <span class="score-label">Wrong</span>
+        <span class="score wrong" id="wrongScore" aria-live="polite">0</span>
+      </div>
+      <button type="button" class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">
+        ⚙
+      </button>
+    </header>
+
+    <main class="main">
+      <div class="equation" id="equation" aria-live="polite">Loading…</div>
+
+      <div class="answer-area" id="answerArea">
+        <div class="typed-answer" id="typedAnswer" hidden>
+          <label class="sr-only" for="answerInput">Your answer</label>
+          <input
+            type="number"
+            id="answerInput"
+            class="answer-input"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="?"
+          />
+          <button type="button" class="btn btn-primary" id="submitBtn">Submit</button>
+        </div>
+
+        <div class="choices" id="choices" hidden></div>
+      </div>
+
+      <p class="feedback" id="feedback" aria-live="assertive"></p>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal" hidden>
+    <div class="modal" role="dialog" aria-labelledby="settingsTitle" aria-modal="true">
+      <h2 id="settingsTitle">Settings</h2>
+
+      <form id="settingsForm" class="settings-form">
+        <label class="field">
+          <span>1st number (digits)</span>
+          <select name="a" id="settingA">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="2-3">2–3</option>
+            <option value="2-4">2–4</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>2nd number (digits)</span>
+          <select name="b" id="settingB">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="2-3">2–3</option>
+            <option value="2-4">2–4</option>
+          </select>
+        </label>
+
+        <fieldset class="field">
+          <legend>Equations</legend>
+          <div class="checkbox-row">
+            <label><input type="checkbox" name="op" value="+" /> +</label>
+            <label><input type="checkbox" name="op" value="-" /> −</label>
+            <label><input type="checkbox" name="op" value="*" /> ×</label>
+            <label><input type="checkbox" name="op" value="/" /> ÷</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Show results</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="sign" value="positive" /> Positive</label>
+            <label><input type="radio" name="sign" value="both" /> Both</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Time</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="time" value="y" /> Yes</label>
+            <label><input type="radio" name="time" value="n" /> No</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Answer mode</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="input" value="answer" /> Type answer</label>
+            <label><input type="radio" name="input" value="multichoice" /> Multiple choice</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Number layout</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="layout" value="side" /> Side by side</label>
+            <label><input type="radio" name="layout" value="column" /> One column</label>
+          </div>
+        </fieldset>
+
+        <p class="form-error" id="settingsError" hidden></p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelSettingsBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="goBtn">Go</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="../js/app.js"></script>
+</body>
+</html>

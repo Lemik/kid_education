@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kid Words Practice</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <nav class="tabs" aria-label="Subjects">
+      <a class="tab" href="../math/">Mathematics</a>
+      <a class="tab active" href="../words/" aria-current="page">Words</a>
+    </nav>
+    <header class="top-bar">
+      <div class="timer-wrap" id="timerWrap" hidden>
+        <span class="timer-label">Time</span>
+        <span class="timer" id="timer" aria-live="polite">00:00</span>
+      </div>
+      <div class="top-bar-spacer"></div>
+      <div class="score-wrap">
+        <span class="score-label">Score</span>
+        <span class="score" id="score" aria-live="polite">0</span>
+      </div>
+      <div class="score-wrap wrong-wrap" id="wrongWrap" hidden>
+        <span class="score-label">Wrong</span>
+        <span class="score wrong" id="wrongScore" aria-live="polite">0</span>
+      </div>
+      <button type="button" class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">
+        ⚙
+      </button>
+    </header>
+
+    <main class="main">
+      <div class="word-display" id="wordDisplay" aria-live="polite">Loading…</div>
+
+      <div class="answer-area" id="answerArea">
+        <div class="typed-answer" id="typedAnswer" hidden>
+          <button type="button" class="btn btn-primary" id="submitBtn">Submit</button>
+        </div>
+      </div>
+
+      <p class="feedback" id="feedback" aria-live="assertive"></p>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal" hidden>
+    <div class="modal" role="dialog" aria-labelledby="settingsTitle" aria-modal="true">
+      <h2 id="settingsTitle">Settings</h2>
+
+      <form id="settingsForm" class="settings-form">
+        <label class="field">
+          <span>Word length</span>
+          <select name="len" id="settingLen">
+            <option value="3">3 letters</option>
+            <option value="4">4 letters</option>
+            <option value="5">5 letters</option>
+            <option value="6">6 letters</option>
+            <option value="3-5">3–5 letters</option>
+            <option value="4-6">4–6 letters</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Letters to hide</span>
+          <select name="hide" id="settingHide">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="auto">Auto (about half)</option>
+          </select>
+        </label>
+
+        <fieldset class="field">
+          <legend>Show first letter</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="first" value="y" /> Yes</label>
+            <label><input type="radio" name="first" value="n" /> No</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Show results</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="sign" value="positive" /> Positive</label>
+            <label><input type="radio" name="sign" value="both" /> Both</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Time</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="time" value="y" /> Yes</label>
+            <label><input type="radio" name="time" value="n" /> No</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Answer mode</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="input" value="answer" /> Type letters</label>
+            <label><input type="radio" name="input" value="multichoice" /> Multiple choice</label>
+          </div>
+        </fieldset>
+
+        <p class="form-error" id="settingsError" hidden></p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelSettingsBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="goBtn">Go</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="../js/words-app.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "3": [
+    "cat", "dog", "run", "sun", "fun", "hat", "bat", "cup", "map", "bed",
+    "red", "big", "pig", "box", "fox", "bus", "car", "jar", "leg", "egg",
+    "bee", "see", "zoo", "mom", "dad", "bag", "cap", "pan", "pen", "net",
+    "wet", "hot", "pot", "top", "hop", "mop", "log", "bug", "rug", "mug",
+    "jam", "yam", "nap", "tap", "sip", "tip", "lip", "zip", "six", "ten"
+  ],
+  "4": [
+    "book", "fish", "tree", "bird", "frog", "duck", "bear", "lion", "cake", "milk",
+    "door", "room", "hand", "foot", "ball", "play", "jump", "swim", "read", "draw",
+    "blue", "pink", "gold", "dark", "soft", "warm", "cold", "fast", "slow", "tall",
+    "tiny", "loud", "rain", "snow", "wind", "star", "moon", "leaf", "rock", "sand",
+    "ship", "boat", "farm", "park", "home", "nest", "flag", "gift", "song", "bell"
+  ],
+  "5": [
+    "apple", "house", "horse", "mouse", "tiger", "zebra", "whale", "shark", "bread", "water",
+    "juice", "candy", "pizza", "salad", "fruit", "table", "chair", "couch", "clock", "light",
+    "plant", "grass", "cloud", "storm", "sunny", "happy", "smile", "laugh", "dance", "sleep",
+    "dream", "story", "paper", "paint", "brush", "music", "piano", "flute", "drums", "train",
+    "plane", "truck", "beach", "river", "ocean", "field", "stone", "shell", "grape", "lemon"
+  ],
+  "6": [
+    "school", "friend", "family", "garden", "flower", "rabbit", "turtle", "kitten", "forest", "monkey",
+    "orange", "banana", "carrot", "butter", "cheese", "cookie", "dinner", "silver", "yellow", "window",
+    "mirror", "pillow", "button", "pencil", "crayon", "puzzle", "soccer", "tennis", "skates", "purple",
+    "summer", "winter", "spring", "autumn", "cloudy", "bright", "gentle", "little", "pretty", "strong",
+    "castle", "bridge", "market", "bakery", "doctor", "farmer", "singer", "dancer", "circle", "square"
+  ]
+}

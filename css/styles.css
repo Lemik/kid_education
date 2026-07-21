@@ -57,6 +57,39 @@ body {
   flex-direction: column;
 }
 
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.4rem 1.1rem;
+  border-radius: 12px 12px 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--muted);
+  border: 2px solid transparent;
+  border-bottom: none;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.tab.active {
+  color: var(--primary-dark);
+  background: var(--surface);
+  border-color: var(--border);
+}
+
 .top-bar {
   display: flex;
   align-items: center;
@@ -84,7 +117,8 @@ body {
 .timer-wrap[hidden],
 .wrong-wrap[hidden],
 .typed-answer[hidden],
-.choices[hidden] {
+.choices[hidden],
+.word-display[hidden] {
   display: none;
 }
 
@@ -316,6 +350,73 @@ body {
   color: var(--error);
 }
 
+.word-display {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.75rem 1rem;
+  width: 100%;
+}
+
+.word-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 3rem;
+}
+
+.word-letter,
+.word-blank {
+  min-height: 1.2em;
+  font-size: clamp(2rem, 8vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: lowercase;
+}
+
+.word-blank {
+  color: var(--muted);
+  min-width: 1.1em;
+  text-align: center;
+  border-bottom: 3px solid var(--border);
+}
+
+.letter-input {
+  width: 3rem;
+  min-height: 52px;
+  font-size: 1.5rem;
+  text-align: center;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 0.25rem;
+  font-weight: 700;
+  color: var(--text);
+  background: #f8fafc;
+  text-transform: lowercase;
+}
+
+.letter-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.letter-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  width: min(100%, 7.5rem);
+}
+
+.letter-choice-btn {
+  min-height: 44px;
+  min-width: 44px;
+  font-size: 1.15rem;
+  padding: 0.25rem;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -433,6 +534,10 @@ body.modal-open {
 
   .choices {
     grid-template-columns: 1fr;
+  }
+
+  .letter-choices {
+    grid-template-columns: 1fr 1fr;
   }
 
   .modal-actions {
