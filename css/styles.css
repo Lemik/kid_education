@@ -417,6 +417,41 @@ body {
   padding: 0.25rem;
 }
 
+.unscramble-answer {
+  margin-bottom: 0.5rem;
+}
+
+.unscramble-pool {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.unscramble-tile {
+  min-width: 3.25rem;
+  min-height: 3.25rem;
+  font-size: clamp(1.35rem, 5vw, 1.75rem);
+  text-transform: lowercase;
+}
+
+.unscramble-pool .choice-btn.used {
+  opacity: 0.35;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.unscramble-slot-filled {
+  cursor: pointer;
+}
+
+.unscramble-undo {
+  margin-top: 0.25rem;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
