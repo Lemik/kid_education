@@ -34,7 +34,7 @@ Then open [http://localhost:8080](http://localhost:8080).
 | `a`     | `1`, `2`, `3`, `4`, `2-3`, `2-4`            | Digit count for the first number             |
 | `b`     | same                                        | Digit count for the second number            |
 | `op`    | `+`, `-`, `*`, `/` (comma-separated)        | Allowed operations (one or more)             |
-| `sign`  | `positive`, `negative`, `both`              | Answer must be positive, negative, or either |
+| `sign`  | `positive`, `both`                          | Answer must be positive or may have either sign. With `both`, the top bar also shows the count of incorrect answers |
 | `time`  | `y`, `n`                                    | Show elapsed session timer                   |
 | `input` | `answer`, `multichoice`                     | Type the answer or pick from choices         |
 | `layout`| `side`, `column`                            | Show numbers side by side or stacked         |

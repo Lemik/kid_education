@@ -1,6 +1,6 @@
 const DIGIT_SPECS = new Set(['1', '2', '3', '4', '2-3', '2-4']);
 const OPS = new Set(['+', '-', '*', '/']);
-const SIGNS = new Set(['positive', 'negative', 'both']);
+const SIGNS = new Set(['positive', 'both']);
 const TIMES = new Set(['y', 'n']);
 const INPUTS = new Set(['answer', 'multichoice']);
 const LAYOUTS = new Set(['side', 'column']);

@@ -18,6 +18,10 @@
         <span class="score-label">Score</span>
         <span class="score" id="score" aria-live="polite">0</span>
       </div>
+      <div class="score-wrap wrong-wrap" id="wrongWrap" hidden>
+        <span class="score-label">Wrong</span>
+        <span class="score wrong" id="wrongScore" aria-live="polite">0</span>
+      </div>
       <button type="button" class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">
         ⚙
       </button>
@@ -90,7 +94,6 @@
           <legend>Show results</legend>
           <div class="radio-row">
             <label><input type="radio" name="sign" value="positive" /> Positive</label>
-            <label><input type="radio" name="sign" value="negative" /> Negative</label>
             <label><input type="radio" name="sign" value="both" /> Both</label>
           </div>
         </fieldset>

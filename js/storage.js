@@ -1,4 +1,5 @@
 const SCORE_KEY = 'kidMath.score';
+const WRONG_KEY = 'kidMath.wrong';
 const STARTED_AT_KEY = 'kidMath.startedAt';
 
 function readNumber(key, fallback = 0) {
@@ -26,6 +27,20 @@ export function resetScore() {
   setScore(0);
 }
 
+export function getWrong() {
+  return Math.max(0, Math.floor(readNumber(WRONG_KEY, 0)));
+}
+
+export function incrementWrong() {
+  const next = getWrong() + 1;
+  sessionStorage.setItem(WRONG_KEY, String(next));
+  return next;
+}
+
+export function resetWrong() {
+  sessionStorage.setItem(WRONG_KEY, '0');
+}
+
 /**
  * Return the session start timestamp (ms). Creates one if missing.
  */
@@ -48,5 +63,6 @@ export function resetStartedAt() {
  */
 export function resetSession() {
   resetScore();
+  resetWrong();
   resetStartedAt();
 }

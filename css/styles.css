@@ -82,9 +82,14 @@ body {
 
 /* display:flex above otherwise overrides the native [hidden] rule */
 .timer-wrap[hidden],
+.wrong-wrap[hidden],
 .typed-answer[hidden],
 .choices[hidden] {
   display: none;
+}
+
+.score.wrong {
+  color: var(--error);
 }
 
 .timer-label,

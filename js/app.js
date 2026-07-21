@@ -8,6 +8,8 @@ import { generateQuestion, generateChoices, OP_SYMBOLS } from './generator.js';
 import {
   getScore,
   incrementScore,
+  getWrong,
+  incrementWrong,
   resetSession,
   getOrCreateStartedAt,
 } from './storage.js';
@@ -16,6 +18,8 @@ const els = {
   timerWrap: document.getElementById('timerWrap'),
   timer: document.getElementById('timer'),
   score: document.getElementById('score'),
+  wrongWrap: document.getElementById('wrongWrap'),
+  wrongScore: document.getElementById('wrongScore'),
   settingsBtn: document.getElementById('settingsBtn'),
   equation: document.getElementById('equation'),
   answerArea: document.getElementById('answerArea'),
@@ -39,13 +43,18 @@ let advanceTimeout = null;
 
 function formatElapsed(ms) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const mmss = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  return hours > 0 ? `${hours}:${mmss}` : mmss;
 }
 
 function updateScoreDisplay() {
   els.score.textContent = String(getScore());
+  els.wrongScore.textContent = String(getWrong());
+  // "Show results: both" also displays the incorrect-answer count.
+  els.wrongWrap.hidden = settings.sign !== 'both';
 }
 
 function clearFeedback() {
@@ -208,11 +217,12 @@ function checkAnswer(rawValue) {
 
   if (value === currentQuestion.answer) {
     incrementScore();
-    updateScoreDisplay();
     showFeedback('Great job!', 'correct');
   } else {
+    incrementWrong();
     showFeedback(`Try again — the answer was ${currentQuestion.answer}.`, 'incorrect');
   }
+  updateScoreDisplay();
 
   advanceTimeout = setTimeout(() => {
     showQuestion();
