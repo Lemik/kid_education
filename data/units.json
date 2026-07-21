@@ -1,0 +1,98 @@
+{
+  "metric": [
+    {
+      "id": "mm-cm",
+      "large": { "short": "cm", "name": "centimeter", "plural": "centimeters" },
+      "small": { "short": "mm", "name": "millimeter", "plural": "millimeters" },
+      "factor": 10
+    },
+    {
+      "id": "cm-m",
+      "large": { "short": "m", "name": "meter", "plural": "meters" },
+      "small": { "short": "cm", "name": "centimeter", "plural": "centimeters" },
+      "factor": 100
+    },
+    {
+      "id": "m-km",
+      "large": { "short": "km", "name": "kilometer", "plural": "kilometers" },
+      "small": { "short": "m", "name": "meter", "plural": "meters" },
+      "factor": 1000
+    },
+    {
+      "id": "g-kg",
+      "large": { "short": "kg", "name": "kilogram", "plural": "kilograms" },
+      "small": { "short": "g", "name": "gram", "plural": "grams" },
+      "factor": 1000
+    },
+    {
+      "id": "mL-L",
+      "large": { "short": "L", "name": "liter", "plural": "liters" },
+      "small": { "short": "mL", "name": "milliliter", "plural": "milliliters" },
+      "factor": 1000
+    }
+  ],
+  "us": [
+    {
+      "id": "in-ft",
+      "large": { "short": "ft", "name": "foot", "plural": "feet" },
+      "small": { "short": "in", "name": "inch", "plural": "inches" },
+      "factor": 12
+    },
+    {
+      "id": "ft-yd",
+      "large": { "short": "yd", "name": "yard", "plural": "yards" },
+      "small": { "short": "ft", "name": "foot", "plural": "feet" },
+      "factor": 3
+    },
+    {
+      "id": "oz-lb",
+      "large": { "short": "lb", "name": "pound", "plural": "pounds" },
+      "small": { "short": "oz", "name": "ounce", "plural": "ounces" },
+      "factor": 16
+    }
+  ],
+  "time": [
+    {
+      "id": "min-hr",
+      "large": { "short": "hr", "name": "hour", "plural": "hours" },
+      "small": { "short": "min", "name": "minute", "plural": "minutes" },
+      "factor": 60
+    },
+    {
+      "id": "hr-day",
+      "large": { "short": "day", "name": "day", "plural": "days" },
+      "small": { "short": "hr", "name": "hour", "plural": "hours" },
+      "factor": 24
+    },
+    {
+      "id": "day-week",
+      "large": { "short": "wk", "name": "week", "plural": "weeks" },
+      "small": { "short": "day", "name": "day", "plural": "days" },
+      "factor": 7
+    },
+    {
+      "id": "day-month",
+      "large": { "short": "mo", "name": "month", "plural": "months" },
+      "small": { "short": "day", "name": "day", "plural": "days" },
+      "factor": 30
+    },
+    {
+      "id": "day-year",
+      "large": { "short": "yr", "name": "year", "plural": "years" },
+      "small": { "short": "day", "name": "day", "plural": "days" },
+      "factor": 365
+    },
+    {
+      "id": "month-year",
+      "large": { "short": "yr", "name": "year", "plural": "years" },
+      "small": { "short": "mo", "name": "month", "plural": "months" },
+      "factor": 12
+    },
+    {
+      "id": "week-year",
+      "large": { "short": "yr", "name": "year", "plural": "years" },
+      "small": { "short": "wk", "name": "week", "plural": "weeks" },
+      "factor": 52
+    }
+  ]
+}

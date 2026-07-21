@@ -8,15 +8,18 @@
 </head>
 <body>
   <div class="app">
-    <nav class="tabs" aria-label="Subjects">
+    <nav class="tabs" id="subjectNav" aria-label="Subjects">
       <a class="tab" href="../math/">Mathematics</a>
+      <a class="tab" href="../measure/">Measurements</a>
       <a class="tab" href="../patterns/">Patterns</a>
       <a class="tab" href="../words/">Words</a>
       <a class="tab active" href="../unscramble/" aria-current="page">Unscramble</a>
       <a class="tab" href="../sentences/">Sentences</a>
       <a class="tab" href="../clock/">Clock</a>
+      <a class="tab" href="../money/">Money</a>
     </nav>
     <header class="top-bar">
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Subjects menu" aria-expanded="false" aria-controls="subjectNav">☰</button>
       <div class="timer-wrap" id="timerWrap" hidden>
         <span class="timer-label">Time</span>
         <span class="timer" id="timer" aria-live="polite">00:00</span>
@@ -99,6 +102,9 @@
     </div>
   </div>
 
+  <div class="nav-backdrop" id="navBackdrop" hidden></div>
+
+  <script type="module" src="../js/nav.js"></script>
   <script type="module" src="../js/unscramble-app.js"></script>
 </body>
 </html>

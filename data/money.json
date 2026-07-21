@@ -1,0 +1,44 @@
+{
+  "coins": [
+    {
+      "id": "nickel",
+      "cents": 5,
+      "label": "nickel",
+      "plural": "nickels",
+      "image": "../assets/coins/nickel.png",
+      "size": 56
+    },
+    {
+      "id": "dime",
+      "cents": 10,
+      "label": "dime",
+      "plural": "dimes",
+      "image": "../assets/coins/dime.png",
+      "size": 48
+    },
+    {
+      "id": "quarter",
+      "cents": 25,
+      "label": "quarter",
+      "plural": "quarters",
+      "image": "../assets/coins/quarter.png",
+      "size": 62
+    },
+    {
+      "id": "loonie",
+      "cents": 100,
+      "label": "loonie",
+      "plural": "loonies",
+      "image": "../assets/coins/loonie.png",
+      "size": 68
+    },
+    {
+      "id": "toonie",
+      "cents": 200,
+      "label": "toonie",
+      "plural": "toonies",
+      "image": "../assets/coins/toonie.png",
+      "size": 72
+    }
+  ]
+}

@@ -49,19 +49,27 @@ body {
 }
 
 .app {
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
   min-height: 100vh;
   padding: 1rem 1.25rem 2rem;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "nav topbar"
+    "nav main";
+  column-gap: 1.25rem;
 }
 
 .tabs {
+  grid-area: nav;
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  border-bottom: 2px solid var(--border);
+  flex-direction: column;
+  gap: 0.35rem;
+  align-self: start;
+  position: sticky;
+  top: 1rem;
 }
 
 .tab {
@@ -69,14 +77,12 @@ body {
   align-items: center;
   min-height: 44px;
   padding: 0.4rem 1.1rem;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   font-size: 1.05rem;
   font-weight: 700;
   text-decoration: none;
   color: var(--muted);
   border: 2px solid transparent;
-  border-bottom: none;
-  margin-bottom: -2px;
 }
 
 .tab:hover {
@@ -91,10 +97,42 @@ body {
 }
 
 .top-bar {
+  grid-area: topbar;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 1.3rem;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(26, 39, 68, 0.06);
+}
+
+.nav-toggle:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 150;
+}
+
+.nav-backdrop[hidden] {
+  display: none;
 }
 
 .top-bar-spacer {
@@ -163,7 +201,7 @@ body {
 }
 
 .main {
-  flex: 1;
+  grid-area: main;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -254,6 +292,79 @@ body {
   border: 3px solid #1e293b;
   border-radius: 12px;
   padding: 0.75rem 1.25rem;
+}
+
+.money-question {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.money-prompt {
+  margin: 0;
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.money-equation-text {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.money-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.coin-img {
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(15, 23, 42, 0.25));
+  user-select: none;
+}
+
+.money-compare {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.money-compare-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  flex: 1 1 140px;
+  max-width: 280px;
+  padding: 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: #f8fafc;
+}
+
+.money-group-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
 }
 
 .equation-side {
@@ -702,6 +813,42 @@ body {
 
 body.modal-open {
   overflow: hidden;
+}
+
+@media (max-width: 720px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "topbar"
+      "main";
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  .tabs {
+    position: fixed;
+    inset: 0 auto 0 0;
+    align-self: stretch;
+    width: min(260px, 80vw);
+    padding: 1.25rem 1rem;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    z-index: 200;
+    overflow-y: auto;
+  }
+
+  .tabs.open {
+    transform: translateX(0);
+  }
+
+  body.nav-open {
+    overflow: hidden;
+  }
 }
 
 @media (max-width: 480px) {

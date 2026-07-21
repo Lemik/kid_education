@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kid Number Patterns</title>
+  <title>Kid Money Practice</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -11,15 +11,15 @@
     <nav class="tabs" id="subjectNav" aria-label="Subjects">
       <a class="tab" href="../math/">Mathematics</a>
       <a class="tab" href="../measure/">Measurements</a>
-      <a class="tab active" href="../patterns/" aria-current="page">Patterns</a>
+      <a class="tab" href="../patterns/">Patterns</a>
       <a class="tab" href="../words/">Words</a>
       <a class="tab" href="../unscramble/">Unscramble</a>
       <a class="tab" href="../sentences/">Sentences</a>
       <a class="tab" href="../clock/">Clock</a>
-      <a class="tab" href="../money/">Money</a>
+      <a class="tab active" href="../money/" aria-current="page">Money</a>
     </nav>
     <header class="top-bar">
-      <button type="button" class="nav-toggle" id="navToggle" aria-label="Subjects menu" aria-expanded="false" aria-controls="subjectNav">☰</button>
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Subjects menu" aria-expanded="false" aria-controls="subjectNav">?</button>
       <div class="timer-wrap" id="timerWrap" hidden>
         <span class="timer-label">Time</span>
         <span class="timer" id="timer" aria-live="polite">00:00</span>
@@ -39,18 +39,20 @@
     </header>
 
     <main class="main">
-      <div class="equation" id="equation" aria-live="polite">Loading…</div>
+      <div class="money-question" id="moneyQuestion" aria-live="polite">Loading…</div>
 
       <div class="answer-area" id="answerArea">
         <div class="typed-answer" id="typedAnswer" hidden>
-          <label class="sr-only" for="answerInput">Your answer</label>
+          <label class="sr-only" for="answerInput">Your answer in cents</label>
           <input
             type="number"
             id="answerInput"
             class="answer-input"
             inputmode="numeric"
             autocomplete="off"
-            placeholder="?"
+            placeholder="¢"
+            min="0"
+            step="1"
           />
           <button type="button" class="btn btn-primary" id="submitBtn">Submit</button>
         </div>
@@ -68,32 +70,42 @@
 
       <form id="settingsForm" class="settings-form">
         <fieldset class="field">
-          <legend>Rules</legend>
+          <legend>Question types</legend>
           <div class="checkbox-row">
-            <label><input type="checkbox" name="rule" value="+" /> +</label>
-            <label><input type="checkbox" name="rule" value="-" /> −</label>
-            <label><input type="checkbox" name="rule" value="*" /> ×</label>
+            <label><input type="checkbox" name="type" value="count" /> Count coins</label>
+            <label><input type="checkbox" name="type" value="compare" /> Compare A vs B</label>
+            <label><input type="checkbox" name="type" value="equation" /> Word equation</label>
           </div>
         </fieldset>
 
         <fieldset class="field">
-          <legend>Step / factor</legend>
+          <legend>Coins</legend>
           <div class="checkbox-row">
-            <label><input type="checkbox" name="step" value="1" /> 1</label>
-            <label><input type="checkbox" name="step" value="2" /> 2</label>
-            <label><input type="checkbox" name="step" value="3" /> 3</label>
-            <label><input type="checkbox" name="step" value="5" /> 5</label>
-            <label><input type="checkbox" name="step" value="10" /> 10</label>
+            <label><input type="checkbox" name="coins" value="nickel" /> Nickel (5¢)</label>
+            <label><input type="checkbox" name="coins" value="dime" /> Dime (10¢)</label>
+            <label><input type="checkbox" name="coins" value="quarter" /> Quarter (25¢)</label>
+            <label><input type="checkbox" name="coins" value="loonie" /> Loonie ($1)</label>
+            <label><input type="checkbox" name="coins" value="toonie" /> Toonie ($2)</label>
           </div>
         </fieldset>
 
         <label class="field">
-          <span>Start range</span>
-          <select name="start" id="settingStart">
-            <option value="1-10">1–10</option>
-            <option value="1-20">1–20</option>
-            <option value="1-50">1–50</option>
-            <option value="5-30">5–30</option>
+          <span>Max coins per type</span>
+          <select name="maxCoins" id="settingMaxCoins">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Max total</span>
+          <select name="maxTotal" id="settingMaxTotal">
+            <option value="50">50¢</option>
+            <option value="100">100¢</option>
+            <option value="200">200¢</option>
+            <option value="500">500¢</option>
           </select>
         </label>
 
@@ -119,6 +131,7 @@
             <label><input type="radio" name="input" value="answer" /> Type answer</label>
             <label><input type="radio" name="input" value="multichoice" /> Multiple choice</label>
           </div>
+          <p class="field-hint">Compare questions always use A / B / Same buttons.</p>
         </fieldset>
 
         <p class="form-error" id="settingsError" hidden></p>
@@ -134,6 +147,6 @@
   <div class="nav-backdrop" id="navBackdrop" hidden></div>
 
   <script type="module" src="../js/nav.js"></script>
-  <script type="module" src="../js/patterns-app.js"></script>
+  <script type="module" src="../js/money-app.js"></script>
 </body>
 </html>
