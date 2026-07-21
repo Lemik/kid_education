@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kid Unscramble Practice</title>
+  <title>Kid Clock Practice</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -12,9 +12,9 @@
       <a class="tab" href="../math/">Mathematics</a>
       <a class="tab" href="../patterns/">Patterns</a>
       <a class="tab" href="../words/">Words</a>
-      <a class="tab active" href="../unscramble/" aria-current="page">Unscramble</a>
+      <a class="tab" href="../unscramble/">Unscramble</a>
       <a class="tab" href="../sentences/">Sentences</a>
-      <a class="tab" href="../clock/">Clock</a>
+      <a class="tab active" href="../clock/" aria-current="page">Clock</a>
     </nav>
     <header class="top-bar">
       <div class="timer-wrap" id="timerWrap" hidden>
@@ -36,12 +36,24 @@
     </header>
 
     <main class="main">
-      <div class="word-display unscramble-answer" id="answerSlots" aria-live="polite" aria-label="Answer slots">Loading…</div>
-
-      <div class="unscramble-pool" id="letterPool" aria-label="Shuffled letters"></div>
+      <p class="clock-prompt">What time is it?</p>
+      <div class="clock-display" id="clockDisplay" aria-live="polite">Loading…</div>
 
       <div class="answer-area" id="answerArea">
-        <button type="button" class="btn btn-secondary unscramble-undo" id="undoBtn" disabled>Undo</button>
+        <div class="typed-answer" id="typedAnswer" hidden>
+          <label class="sr-only" for="answerInput">Your answer</label>
+          <input
+            type="text"
+            id="answerInput"
+            class="answer-input"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="3:30"
+          />
+          <button type="button" class="btn btn-primary" id="submitBtn">Submit</button>
+        </div>
+
+        <div class="choices" id="choices" hidden></div>
       </div>
 
       <p class="feedback" id="feedback" aria-live="assertive"></p>
@@ -53,23 +65,31 @@
       <h2 id="settingsTitle">Settings</h2>
 
       <form id="settingsForm" class="settings-form">
+        <fieldset class="field">
+          <legend>Clock face</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="face" value="analog" /> Analog</label>
+            <label><input type="radio" name="face" value="digital" /> Digital</label>
+            <label><input type="radio" name="face" value="both" /> Both</label>
+          </div>
+        </fieldset>
+
         <label class="field">
-          <span>Word length</span>
-          <select name="len" id="settingLen">
-            <option value="3">3 letters</option>
-            <option value="4">4 letters</option>
-            <option value="5">5 letters</option>
-            <option value="6">6 letters</option>
-            <option value="3-5">3–5 letters</option>
-            <option value="4-6">4–6 letters</option>
+          <span>Difficulty</span>
+          <select name="diff" id="settingDiff">
+            <option value="oclock">O'clock</option>
+            <option value="half">Half hours</option>
+            <option value="quarter">Quarter hours</option>
+            <option value="five">5 minutes</option>
+            <option value="any">Any minute</option>
           </select>
         </label>
 
         <fieldset class="field">
-          <legend>Show first letter</legend>
+          <legend>Time format</legend>
           <div class="radio-row">
-            <label><input type="radio" name="first" value="y" /> Yes</label>
-            <label><input type="radio" name="first" value="n" /> No</label>
+            <label><input type="radio" name="format" value="12" /> 12-hour</label>
+            <label><input type="radio" name="format" value="24" /> 24-hour</label>
           </div>
         </fieldset>
 
@@ -89,6 +109,14 @@
           </div>
         </fieldset>
 
+        <fieldset class="field">
+          <legend>Answer mode</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="input" value="answer" /> Type answer</label>
+            <label><input type="radio" name="input" value="multichoice" /> Multiple choice</label>
+          </div>
+        </fieldset>
+
         <p class="form-error" id="settingsError" hidden></p>
 
         <div class="modal-actions">
@@ -99,6 +127,6 @@
     </div>
   </div>
 
-  <script type="module" src="../js/unscramble-app.js"></script>
+  <script type="module" src="../js/clock-app.js"></script>
 </body>
 </html>

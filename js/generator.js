@@ -97,6 +97,12 @@ function generateDivision(settings) {
 }
 
 function generateOnce(settings) {
+  if (settings.mode === 'times-table') {
+    const a = randomInt(1, 12);
+    const b = randomInt(1, 12);
+    return { a, b, op: '*', answer: a * b };
+  }
+
   const op = pick(settings.op);
 
   if (op === '/') {
@@ -109,46 +115,84 @@ function generateOnce(settings) {
   return { a, b, op, answer };
 }
 
+const MISSING = ['a', 'b', 'result', 'op'];
+const ALL_OPS = ['+', '-', '*', '/'];
+
+function opsMatching(a, b, result, allowedOps) {
+  return allowedOps.filter((o) => compute(a, b, o) === result);
+}
+
+function buildQuestion({ a, b, op, result, missing }) {
+  const sym = OP_SYMBOLS[op];
+  let answer;
+  let display;
+
+  switch (missing) {
+    case 'a':
+      answer = a;
+      display = `? ${sym} ${b} = ${result}`;
+      break;
+    case 'b':
+      answer = b;
+      display = `${a} ${sym} ? = ${result}`;
+      break;
+    case 'result':
+      answer = result;
+      display = `${a} ${sym} ${b} = ?`;
+      break;
+    case 'op':
+      answer = op;
+      display = `${a} ? ${b} = ${result}`;
+      break;
+    default:
+      throw new Error(`Unknown missing slot: ${missing}`);
+  }
+
+  return { a, b, op, result, missing, answer, display };
+}
+
 /**
  * Generate a question matching digit, operation, and answer-sign settings.
+ * With settings.missing === 'y', randomly hides the 1st number, 2nd number,
+ * result, or operation; otherwise always hides the result.
  */
 export function generateQuestion(settings, maxAttempts = 50) {
   let last = null;
 
   for (let i = 0; i < maxAttempts; i += 1) {
     const candidate = generateOnce(settings);
-    last = candidate;
+    const result = candidate.answer;
 
-    if (!Number.isInteger(candidate.answer)) continue;
-    if (!matchesSign(candidate.answer, settings.sign)) continue;
+    if (!Number.isInteger(result)) continue;
 
-    return {
+    last = { a: candidate.a, b: candidate.b, op: candidate.op, result };
+
+    const missing = settings.missing === 'y' ? pick(MISSING) : 'result';
+
+    if (missing === 'op') {
+      const matches = opsMatching(candidate.a, candidate.b, result, settings.op);
+      if (matches.length !== 1 || matches[0] !== candidate.op) continue;
+    }
+
+    const question = buildQuestion({
       a: candidate.a,
       b: candidate.b,
       op: candidate.op,
-      answer: candidate.answer,
-      display: `${candidate.a} ${OP_SYMBOLS[candidate.op]} ${candidate.b} = ?`,
-    };
+      result,
+      missing,
+    });
+
+    if (missing !== 'op' && !matchesSign(question.answer, settings.sign)) continue;
+
+    return question;
   }
 
-  // Soft fallback: return last generated integer answer, or a simple addition.
-  if (last && Number.isInteger(last.answer)) {
-    return {
-      a: last.a,
-      b: last.b,
-      op: last.op,
-      answer: last.answer,
-      display: `${last.a} ${OP_SYMBOLS[last.op]} ${last.b} = ?`,
-    };
+  // Soft fallback: result-missing from last integer candidate, or a simple addition.
+  if (last) {
+    return buildQuestion({ ...last, missing: 'result' });
   }
 
-  return {
-    a: 1,
-    b: 1,
-    op: '+',
-    answer: 2,
-    display: '1 + 1 = ?',
-  };
+  return buildQuestion({ a: 1, b: 1, op: '+', result: 2, missing: 'result' });
 }
 
 /**
@@ -177,6 +221,25 @@ export function generateChoices(correctAnswer, count = 4) {
   }
 
   return shuffle([...choices]);
+}
+
+/**
+ * Build multiple-choice options for a missing operation.
+ * Prefer other ops from allowedOps, then fill from any remaining ops.
+ */
+export function generateOpChoices(correctOp, allowedOps, count = 4) {
+  const choices = [correctOp];
+  const pool = [
+    ...allowedOps.filter((o) => o !== correctOp),
+    ...ALL_OPS.filter((o) => o !== correctOp && !allowedOps.includes(o)),
+  ];
+
+  for (const op of shuffle(pool)) {
+    if (choices.length >= count) break;
+    choices.push(op);
+  }
+
+  return shuffle(choices);
 }
 
 function shuffle(array) {

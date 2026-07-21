@@ -1,0 +1,88 @@
+{
+  "templates": [
+    {
+      "id": "sits-on-rug",
+      "before": "The ",
+      "after": " sits on the rug.",
+      "words": ["cat", "dog", "fox", "pig", "hen", "owl", "rat", "pup", "kid", "frog", "duck", "bear", "lion", "doll", "mouse", "tiger", "panda", "rabbit", "kitten", "turtle", "monkey"]
+    },
+    {
+      "id": "is-on-bed",
+      "before": "The ",
+      "after": " is on the bed.",
+      "words": ["cat", "dog", "hat", "toy", "cap", "bag", "map", "pen", "mug", "book", "doll", "coat", "belt", "drum", "kite", "pillow", "jacket", "mitten", "teddy"]
+    },
+    {
+      "id": "see-in-sky",
+      "before": "I see a ",
+      "after": " in the sky.",
+      "words": ["jet", "bee", "owl", "bird", "star", "kite", "moon", "crow", "cloud", "plane", "eagle", "falcon", "parrot", "dragon"]
+    },
+    {
+      "id": "is-in-box",
+      "before": "A ",
+      "after": " is in the box.",
+      "words": ["toy", "hat", "pen", "cap", "map", "key", "pin", "mug", "jar", "nut", "book", "doll", "ball", "gift", "coin", "bell", "shell", "crayon", "puzzle", "button", "marble", "magnet"]
+    },
+    {
+      "id": "runs-in-park",
+      "before": "The ",
+      "after": " runs in the park.",
+      "words": ["dog", "cat", "fox", "pig", "kid", "pup", "hen", "rat", "deer", "goat", "pony", "girl", "horse", "tiger", "rabbit", "kitten"]
+    },
+    {
+      "id": "on-the-log",
+      "before": "Look at the ",
+      "after": " on the log.",
+      "words": ["bug", "ant", "owl", "bee", "fox", "cat", "rat", "hen", "frog", "bird", "crow", "crab", "otter", "lizard", "insect", "parrot", "beaver"]
+    },
+    {
+      "id": "can-swim",
+      "before": "The ",
+      "after": " can swim.",
+      "words": ["dog", "cow", "kid", "rat", "elf", "fish", "duck", "frog", "bear", "deer", "goat", "whale", "shark", "otter", "goose", "hippo", "turtle", "beaver"]
+    },
+    {
+      "id": "is-in-nest",
+      "before": "The ",
+      "after": " is in the nest.",
+      "words": ["egg", "owl", "bee", "ant", "bug", "bird", "crow", "eagle", "chick", "falcon", "parrot"]
+    },
+    {
+      "id": "on-the-farm",
+      "before": "A ",
+      "after": " is on the farm.",
+      "words": ["cow", "hen", "pig", "cat", "dog", "duck", "goat", "lamb", "pony", "barn", "crow", "horse", "goose", "farmer", "donkey", "rabbit", "kitten"]
+    },
+    {
+      "id": "like-in-park",
+      "before": "I like the ",
+      "after": " in the park.",
+      "words": ["dog", "owl", "bee", "tree", "bird", "duck", "lake", "sand", "rock", "kite", "pony", "grass", "swing", "flower", "garden", "bridge", "meadow"]
+    },
+    {
+      "id": "like-to-eat",
+      "before": "I like to eat ",
+      "after": ".",
+      "words": ["jam", "pie", "egg", "cake", "corn", "fish", "milk", "food", "pizza", "salad", "bread", "candy", "honey", "melon", "mango", "peach", "fruit", "lunch", "jelly", "cheese", "butter", "cookie", "orange", "banana", "carrot", "burger", "muffin", "peanut", "cherry"]
+    },
+    {
+      "id": "is-in-house",
+      "before": "The ",
+      "after": " is in the house.",
+      "words": ["cat", "dog", "kid", "mom", "dad", "toy", "bed", "baby", "doll", "lamp", "desk", "girl", "king", "mouse", "table", "chair", "couch", "clock", "light", "piano", "robot", "queen", "nurse", "kitten", "puzzle", "mirror", "pillow", "carpet", "candle"]
+    },
+    {
+      "id": "in-the-garden",
+      "before": "The ",
+      "after": " is in the garden.",
+      "words": ["bee", "ant", "bug", "owl", "cat", "dog", "hen", "tree", "bird", "frog", "rock", "leaf", "plant", "grass", "daisy", "snail", "mouse", "flower", "rabbit", "turtle", "kitten", "carrot", "insect", "lizard", "parrot", "clover", "cactus"]
+    },
+    {
+      "id": "lives-in-jungle",
+      "before": "A ",
+      "after": " lives in the jungle.",
+      "words": ["bug", "ant", "bee", "owl", "rat", "frog", "bird", "lion", "bear", "crow", "tiger", "snake", "panda", "hippo", "koala", "camel", "eagle", "monkey", "parrot", "lizard", "insect", "jaguar", "dragon", "falcon", "beaver"]
+    }
+  ]
+}

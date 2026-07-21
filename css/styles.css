@@ -185,6 +185,77 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.clock-prompt {
+  margin: 0;
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.clock-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  width: 100%;
+}
+
+.clock-face {
+  width: min(280px, 80vw);
+  height: auto;
+  display: block;
+}
+
+.clock-face-ring {
+  fill: #fff;
+  stroke: #1e293b;
+  stroke-width: 4;
+}
+
+.clock-tick {
+  stroke: #1e293b;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.clock-number {
+  fill: #1e293b;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: system-ui, sans-serif;
+}
+
+.clock-hand {
+  stroke-linecap: round;
+}
+
+.clock-hand-hour {
+  stroke: #1e293b;
+  stroke-width: 5;
+}
+
+.clock-hand-minute {
+  stroke: #2563eb;
+  stroke-width: 3.5;
+}
+
+.clock-center {
+  fill: #1e293b;
+}
+
+.clock-digital {
+  font-size: clamp(2.5rem, 10vw, 4rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #1e293b;
+  background: #f1f5f9;
+  border: 3px solid #1e293b;
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+}
+
 .equation-side {
   min-height: 1.4em;
 }
@@ -452,6 +523,70 @@ body {
   margin-top: 0.25rem;
 }
 
+.sentence-display {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.15rem 0.35rem;
+  width: 100%;
+  max-width: 36rem;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.sentence-text {
+  color: var(--text);
+}
+
+.sentence-blank {
+  display: inline-block;
+  min-width: 3.5rem;
+  padding: 0 0.15rem;
+  color: var(--muted);
+  border-bottom: 3px solid var(--border);
+  letter-spacing: 0.08em;
+  font-weight: 800;
+}
+
+.sentence-choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 0.5rem;
+}
+
+.sentence-choice-btn {
+  min-width: 5.5rem;
+  padding: 0.5rem 1rem;
+  text-transform: lowercase;
+}
+
+.sentence-input {
+  width: 100%;
+  min-height: 64px;
+  font-size: 1.75rem;
+  text-align: center;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  background: #f8fafc;
+  text-transform: lowercase;
+}
+
+.sentence-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -521,6 +656,13 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem 1rem;
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .checkbox-row label,

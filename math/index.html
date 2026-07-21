@@ -10,8 +10,11 @@
   <div class="app">
     <nav class="tabs" aria-label="Subjects">
       <a class="tab active" href="../math/" aria-current="page">Mathematics</a>
+      <a class="tab" href="../patterns/">Patterns</a>
       <a class="tab" href="../words/">Words</a>
       <a class="tab" href="../unscramble/">Unscramble</a>
+      <a class="tab" href="../sentences/">Sentences</a>
+      <a class="tab" href="../clock/">Clock</a>
     </nav>
     <header class="top-bar">
       <div class="timer-wrap" id="timerWrap" hidden>
@@ -61,39 +64,50 @@
       <h2 id="settingsTitle">Settings</h2>
 
       <form id="settingsForm" class="settings-form">
-        <label class="field">
-          <span>1st number (digits)</span>
-          <select name="a" id="settingA">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="2-3">2–3</option>
-            <option value="2-4">2–4</option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>2nd number (digits)</span>
-          <select name="b" id="settingB">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="2-3">2–3</option>
-            <option value="2-4">2–4</option>
-          </select>
-        </label>
-
         <fieldset class="field">
-          <legend>Equations</legend>
-          <div class="checkbox-row">
-            <label><input type="checkbox" name="op" value="+" /> +</label>
-            <label><input type="checkbox" name="op" value="-" /> −</label>
-            <label><input type="checkbox" name="op" value="*" /> ×</label>
-            <label><input type="checkbox" name="op" value="/" /> ÷</label>
+          <legend>Practice mode</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="mode" value="default" /> Standard</label>
+            <label><input type="radio" name="mode" value="times-table" /> Times tables</label>
           </div>
+          <p class="field-hint" id="timesTableHint" hidden>Factors 1–12, multiplication only</p>
         </fieldset>
+
+        <div id="standardModeFields">
+          <label class="field">
+            <span>1st number (digits)</span>
+            <select name="a" id="settingA">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="2-3">2–3</option>
+              <option value="2-4">2–4</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>2nd number (digits)</span>
+            <select name="b" id="settingB">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="2-3">2–3</option>
+              <option value="2-4">2–4</option>
+            </select>
+          </label>
+
+          <fieldset class="field">
+            <legend>Equations</legend>
+            <div class="checkbox-row">
+              <label><input type="checkbox" name="op" value="+" /> +</label>
+              <label><input type="checkbox" name="op" value="-" /> −</label>
+              <label><input type="checkbox" name="op" value="*" /> ×</label>
+              <label><input type="checkbox" name="op" value="/" /> ÷</label>
+            </div>
+          </fieldset>
+        </div>
 
         <fieldset class="field">
           <legend>Show results</legend>
@@ -124,6 +138,14 @@
           <div class="radio-row">
             <label><input type="radio" name="layout" value="side" /> Side by side</label>
             <label><input type="radio" name="layout" value="column" /> One column</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Missing number</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="missing" value="y" /> Yes</label>
+            <label><input type="radio" name="missing" value="n" /> No</label>
           </div>
         </fieldset>
 

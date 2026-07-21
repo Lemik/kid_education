@@ -3,8 +3,8 @@ import {
   settingsToUrl,
   readSettingsFromForm,
   applySettingsToForm,
-} from './settings.js';
-import { generateQuestion, generateChoices, generateOpChoices, OP_SYMBOLS } from './generator.js';
+} from './patterns-settings.js';
+import { generateQuestion, generateChoices } from './patterns-generator.js';
 import {
   getScore,
   incrementScore,
@@ -12,7 +12,7 @@ import {
   incrementWrong,
   resetSession,
   getOrCreateStartedAt,
-} from './storage.js';
+} from './patterns-storage.js';
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -32,8 +32,6 @@ const els = {
   settingsForm: document.getElementById('settingsForm'),
   settingsError: document.getElementById('settingsError'),
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
-  standardModeFields: document.getElementById('standardModeFields'),
-  timesTableHint: document.getElementById('timesTableHint'),
 };
 
 let settings = parseSettingsFromUrl();
@@ -102,7 +100,7 @@ function clearAdvanceTimeout() {
   }
 }
 
-function renderTypedMode(question) {
+function renderTypedMode() {
   els.typedAnswer.hidden = false;
   els.choices.hidden = true;
   els.choices.innerHTML = '';
@@ -110,36 +108,21 @@ function renderTypedMode(question) {
   els.answerInput.disabled = false;
   els.submitBtn.disabled = false;
   selectedChoice = null;
-
-  if (question.missing === 'op') {
-    els.answerInput.type = 'text';
-    els.answerInput.inputMode = 'text';
-    els.answerInput.placeholder = '?';
-  } else {
-    els.answerInput.type = 'number';
-    els.answerInput.inputMode = 'numeric';
-    els.answerInput.placeholder = '?';
-  }
-
   els.answerInput.focus();
 }
 
-function renderChoiceMode(question) {
+function renderChoiceMode(answer) {
   els.typedAnswer.hidden = true;
   els.choices.hidden = false;
   els.choices.innerHTML = '';
   selectedChoice = null;
 
-  const isOp = question.missing === 'op';
-  const options = isOp
-    ? generateOpChoices(question.answer, settings.op)
-    : generateChoices(question.answer);
-
+  const options = generateChoices(answer);
   for (const value of options) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'choice-btn';
-    btn.textContent = isOp ? OP_SYMBOLS[value] : String(value);
+    btn.textContent = String(value);
     btn.dataset.value = String(value);
     btn.addEventListener('click', () => onChoiceSelected(btn, value));
     els.choices.appendChild(btn);
@@ -158,44 +141,10 @@ function onChoiceSelected(btn, value) {
   checkAnswer(value);
 }
 
-function renderEquation(question) {
-  if (settings.layout !== 'column') {
-    // Restore the answer area to its normal spot before wiping equation content.
-    els.feedback.before(els.answerArea);
-    els.equation.className = 'equation equation-side';
-    els.equation.textContent = question.display;
-    els.equation.removeAttribute('aria-label');
-    return;
-  }
-
-  const topNumber = document.createElement('span');
-  topNumber.className = 'column-number';
-  topNumber.textContent = question.missing === 'a' ? '?' : String(question.a);
-
-  const bottomRow = document.createElement('span');
-  bottomRow.className = 'column-row';
-
-  const operator = document.createElement('span');
-  operator.className = 'column-operator';
-  operator.textContent = question.missing === 'op' ? '?' : OP_SYMBOLS[question.op];
-
-  const bottomNumber = document.createElement('span');
-  bottomNumber.className = 'column-number';
-  bottomNumber.textContent = question.missing === 'b' ? '?' : String(question.b);
-
-  const line = document.createElement('span');
-  line.className = 'column-line';
-  line.setAttribute('aria-hidden', 'true');
-
-  // Answer input/choices live directly under the line, like written arithmetic.
-  const answerSlot = document.createElement('span');
-  answerSlot.className = 'column-answer-slot';
-  answerSlot.appendChild(els.answerArea);
-
-  bottomRow.append(operator, bottomNumber);
-  els.equation.className = 'equation equation-column';
-  els.equation.replaceChildren(topNumber, bottomRow, line, answerSlot);
-  els.equation.setAttribute('aria-label', question.display);
+function renderSequence(question) {
+  els.equation.className = 'equation equation-side';
+  els.equation.textContent = question.display;
+  els.equation.removeAttribute('aria-label');
 }
 
 function showQuestion() {
@@ -203,12 +152,12 @@ function showQuestion() {
   clearFeedback();
   acceptingAnswers = true;
   currentQuestion = generateQuestion(settings);
-  renderEquation(currentQuestion);
+  renderSequence(currentQuestion);
 
   if (settings.input === 'multichoice') {
-    renderChoiceMode(currentQuestion);
+    renderChoiceMode(currentQuestion.answer);
   } else {
-    renderTypedMode(currentQuestion);
+    renderTypedMode();
   }
 }
 
@@ -221,65 +170,23 @@ function lockInputs() {
   }
 }
 
-const OP_INPUT_ALIASES = {
-  '+': '+',
-  '-': '-',
-  '−': '-',
-  '*': '*',
-  '×': '*',
-  x: '*',
-  X: '*',
-  '/': '/',
-  '÷': '/',
-};
-
-function normalizeOpInput(raw) {
-  const trimmed = String(raw).trim();
-  return OP_INPUT_ALIASES[trimmed] ?? null;
-}
-
-function formatAnswerForFeedback(answer, missing) {
-  if (missing === 'op') return OP_SYMBOLS[answer] ?? String(answer);
-  return String(answer);
-}
-
 function checkAnswer(rawValue) {
   if (!acceptingAnswers || !currentQuestion) return;
 
-  const isOp = currentQuestion.missing === 'op';
-  let value;
-  let correct;
-
-  if (isOp) {
-    // Multichoice passes the raw op code ('+', '-', ...); typed input may use symbols.
-    if (typeof rawValue === 'string' && ['+', '-', '*', '/'].includes(rawValue)) {
-      value = rawValue;
-    } else {
-      value = normalizeOpInput(rawValue);
-    }
-    if (value == null) {
-      showFeedback('Enter +, −, ×, or ÷.', 'incorrect');
-      return;
-    }
-    correct = value === currentQuestion.answer;
-  } else {
-    value = typeof rawValue === 'number' ? rawValue : Number(String(rawValue).trim());
-    if (!Number.isFinite(value)) {
-      showFeedback('Enter a number.', 'incorrect');
-      return;
-    }
-    correct = value === currentQuestion.answer;
+  const value = typeof rawValue === 'number' ? rawValue : Number(String(rawValue).trim());
+  if (!Number.isFinite(value)) {
+    showFeedback('Enter a number.', 'incorrect');
+    return;
   }
 
   lockInputs();
 
-  if (correct) {
+  if (value === currentQuestion.answer) {
     incrementScore();
     showFeedback('Great job!', 'correct');
   } else {
     incrementWrong();
-    const shown = formatAnswerForFeedback(currentQuestion.answer, currentQuestion.missing);
-    showFeedback(`Try again — the answer was ${shown}.`, 'incorrect');
+    showFeedback(`Try again — the answer was ${currentQuestion.answer}.`, 'incorrect');
   }
   updateScoreDisplay();
 
@@ -294,7 +201,6 @@ function onSubmitTyped() {
 
 function openSettingsModal() {
   applySettingsToForm(els.settingsForm, settings);
-  updateModeFieldLock();
   els.settingsError.hidden = true;
   els.settingsError.textContent = '';
   els.settingsModal.hidden = false;
@@ -304,17 +210,6 @@ function openSettingsModal() {
 function closeSettingsModal() {
   els.settingsModal.hidden = true;
   document.body.classList.remove('modal-open');
-}
-
-function updateModeFieldLock() {
-  const modeValue = els.settingsForm.querySelector('input[name="mode"]:checked')?.value;
-  const timesTable = modeValue === 'times-table';
-  if (els.standardModeFields) {
-    els.standardModeFields.hidden = timesTable;
-  }
-  if (els.timesTableHint) {
-    els.timesTableHint.hidden = !timesTable;
-  }
 }
 
 function onSettingsSubmit(event) {
@@ -347,10 +242,6 @@ function bindEvents() {
       closeSettingsModal();
     }
   });
-
-  for (const radio of els.settingsForm.querySelectorAll('input[name="mode"]')) {
-    radio.addEventListener('change', updateModeFieldLock);
-  }
 
   els.settingsForm.addEventListener('submit', onSettingsSubmit);
   els.submitBtn.addEventListener('click', onSubmitTyped);

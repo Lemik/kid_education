@@ -80,6 +80,7 @@ Base path: `/math/`
 
 | Param    | Values                               | Meaning |
 |----------|--------------------------------------|---------|
+| `mode`   | `times-table` (omit = standard)      | Times-table mode: factors 1–12, multiplication only. Ignores `a`, `b`, and `op` |
 | `a`      | `1`, `2`, `3`, `4`, `2-3`, `2-4`     | Digit count for the first number |
 | `b`      | same                                 | Digit count for the second number |
 | `op`     | `+`, `-`, `*`, `/` (comma-separated) | Allowed operations (one or more) |
@@ -87,8 +88,9 @@ Base path: `/math/`
 | `time`   | `y`, `n`                             | Show or hide the elapsed session timer |
 | `input`  | `answer`, `multichoice`              | Type the answer or pick from choices |
 | `layout` | `side`, `column`                     | Side-by-side (`12 + 5 = ?`) or stacked column with answer under the line |
+| `missing`| `y`, `n`                             | Missing-number mode: randomly hide the 1st number, 2nd number, result, or operation (`5 + ? = 12`, `? − 3 = 7`, `5 ? 7 = 12`). With `n`, always ask for the result |
 
-**Defaults** when a param is missing: `a=1`, `b=1`, `op=+`, `sign=both`, `time=y`, `input=answer`, `layout=side`.
+**Defaults** when a param is missing: standard mode (`mode` omitted), `a=1`, `b=1`, `op=+`, `sign=both`, `time=y`, `input=answer`, `layout=side`, `missing=n`.
 
 Digit specs:
 
@@ -102,6 +104,7 @@ Notes:
 
 - Division always has an integer answer.
 - Encode `+` in `op` as `%2B` in URLs (e.g. `op=%2B,-`).
+- When `mode=times-table`, `a`, `b`, and `op` are ignored; both factors are random integers from 1–12 and the operation is always ×.
 
 ### Example URLs
 
@@ -121,4 +124,10 @@ Subtraction with either-sign answers allowed:
 
 ```text
 /math/?a=2&b=2&op=-&sign=both&time=y&input=answer&layout=column
+```
+
+Times tables (factors 1–12, multiplication only):
+
+```text
+/math/?mode=times-table&sign=positive&time=y&input=multichoice&layout=column
 ```

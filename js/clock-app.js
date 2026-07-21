@@ -3,8 +3,12 @@ import {
   settingsToUrl,
   readSettingsFromForm,
   applySettingsToForm,
-} from './settings.js';
-import { generateQuestion, generateChoices, generateOpChoices, OP_SYMBOLS } from './generator.js';
+} from './clock-settings.js';
+import {
+  generateQuestion,
+  generateChoices,
+  normalizeTypedAnswer,
+} from './clock-generator.js';
 import {
   getScore,
   incrementScore,
@@ -12,7 +16,11 @@ import {
   incrementWrong,
   resetSession,
   getOrCreateStartedAt,
-} from './storage.js';
+} from './clock-storage.js';
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const CX = 100;
+const CY = 100;
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -21,7 +29,7 @@ const els = {
   wrongWrap: document.getElementById('wrongWrap'),
   wrongScore: document.getElementById('wrongScore'),
   settingsBtn: document.getElementById('settingsBtn'),
-  equation: document.getElementById('equation'),
+  clockDisplay: document.getElementById('clockDisplay'),
   answerArea: document.getElementById('answerArea'),
   typedAnswer: document.getElementById('typedAnswer'),
   answerInput: document.getElementById('answerInput'),
@@ -32,8 +40,6 @@ const els = {
   settingsForm: document.getElementById('settingsForm'),
   settingsError: document.getElementById('settingsError'),
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
-  standardModeFields: document.getElementById('standardModeFields'),
-  timesTableHint: document.getElementById('timesTableHint'),
 };
 
 let settings = parseSettingsFromUrl();
@@ -55,7 +61,6 @@ function formatElapsed(ms) {
 function updateScoreDisplay() {
   els.score.textContent = String(getScore());
   els.wrongScore.textContent = String(getWrong());
-  // "Show results: both" also displays the incorrect-answer count.
   els.wrongWrap.hidden = settings.sign !== 'both';
 }
 
@@ -102,7 +107,119 @@ function clearAdvanceTimeout() {
   }
 }
 
-function renderTypedMode(question) {
+function svgEl(name, attrs = {}) {
+  const el = document.createElementNS(SVG_NS, name);
+  for (const [key, value] of Object.entries(attrs)) {
+    el.setAttribute(key, String(value));
+  }
+  return el;
+}
+
+/**
+ * Build an analog clock SVG for the given hours (1–12 or 0–23) and minutes.
+ */
+function renderAnalogClock(hours, minutes) {
+  const svg = svgEl('svg', {
+    class: 'clock-face',
+    viewBox: '0 0 200 200',
+    role: 'img',
+    'aria-label': `Analog clock showing ${currentQuestion.answerText}`,
+  });
+
+  svg.appendChild(
+    svgEl('circle', {
+      class: 'clock-face-ring',
+      cx: CX,
+      cy: CY,
+      r: 92,
+    }),
+  );
+
+  // Hour ticks and numbers
+  for (let i = 1; i <= 12; i += 1) {
+    const angle = (i * 30 - 90) * (Math.PI / 180);
+    const outerR = 88;
+    const innerR = 78;
+    const x1 = CX + Math.cos(angle) * outerR;
+    const y1 = CY + Math.sin(angle) * outerR;
+    const x2 = CX + Math.cos(angle) * innerR;
+    const y2 = CY + Math.sin(angle) * innerR;
+    svg.appendChild(
+      svgEl('line', {
+        class: 'clock-tick',
+        x1,
+        y1,
+        x2,
+        y2,
+      }),
+    );
+
+    const numR = 64;
+    const tx = CX + Math.cos(angle) * numR;
+    const ty = CY + Math.sin(angle) * numR;
+    const text = svgEl('text', {
+      class: 'clock-number',
+      x: tx,
+      y: ty,
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central',
+    });
+    text.textContent = String(i);
+    svg.appendChild(text);
+  }
+
+  const hourAngle = (hours % 12) * 30 + minutes * 0.5;
+  const minuteAngle = minutes * 6;
+
+  const hourHand = svgEl('line', {
+    class: 'clock-hand clock-hand-hour',
+    x1: CX,
+    y1: CY,
+    x2: CX,
+    y2: CY - 45,
+    transform: `rotate(${hourAngle}, ${CX}, ${CY})`,
+  });
+  const minuteHand = svgEl('line', {
+    class: 'clock-hand clock-hand-minute',
+    x1: CX,
+    y1: CY,
+    x2: CX,
+    y2: CY - 68,
+    transform: `rotate(${minuteAngle}, ${CX}, ${CY})`,
+  });
+
+  svg.appendChild(hourHand);
+  svg.appendChild(minuteHand);
+  svg.appendChild(
+    svgEl('circle', {
+      class: 'clock-center',
+      cx: CX,
+      cy: CY,
+      r: 5,
+    }),
+  );
+
+  return svg;
+}
+
+function renderDigitalClock(displayText) {
+  const el = document.createElement('div');
+  el.className = 'clock-digital';
+  el.textContent = displayText;
+  el.setAttribute('aria-label', `Digital clock showing ${displayText}`);
+  return el;
+}
+
+function renderClock(question) {
+  els.clockDisplay.innerHTML = '';
+  if (question.face === 'digital') {
+    els.clockDisplay.appendChild(renderDigitalClock(question.displayText));
+  } else {
+    els.clockDisplay.appendChild(renderAnalogClock(question.hours, question.minutes));
+  }
+}
+
+function renderTypedMode() {
   els.typedAnswer.hidden = false;
   els.choices.hidden = true;
   els.choices.innerHTML = '';
@@ -110,17 +227,6 @@ function renderTypedMode(question) {
   els.answerInput.disabled = false;
   els.submitBtn.disabled = false;
   selectedChoice = null;
-
-  if (question.missing === 'op') {
-    els.answerInput.type = 'text';
-    els.answerInput.inputMode = 'text';
-    els.answerInput.placeholder = '?';
-  } else {
-    els.answerInput.type = 'number';
-    els.answerInput.inputMode = 'numeric';
-    els.answerInput.placeholder = '?';
-  }
-
   els.answerInput.focus();
 }
 
@@ -130,17 +236,13 @@ function renderChoiceMode(question) {
   els.choices.innerHTML = '';
   selectedChoice = null;
 
-  const isOp = question.missing === 'op';
-  const options = isOp
-    ? generateOpChoices(question.answer, settings.op)
-    : generateChoices(question.answer);
-
+  const options = generateChoices(question.hours, question.minutes, settings);
   for (const value of options) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'choice-btn';
-    btn.textContent = isOp ? OP_SYMBOLS[value] : String(value);
-    btn.dataset.value = String(value);
+    btn.textContent = value;
+    btn.dataset.value = value;
     btn.addEventListener('click', () => onChoiceSelected(btn, value));
     els.choices.appendChild(btn);
   }
@@ -154,48 +256,7 @@ function onChoiceSelected(btn, value) {
     child.classList.toggle('selected', child === btn);
   }
 
-  // Auto-submit on selection for a smoother kid flow.
   checkAnswer(value);
-}
-
-function renderEquation(question) {
-  if (settings.layout !== 'column') {
-    // Restore the answer area to its normal spot before wiping equation content.
-    els.feedback.before(els.answerArea);
-    els.equation.className = 'equation equation-side';
-    els.equation.textContent = question.display;
-    els.equation.removeAttribute('aria-label');
-    return;
-  }
-
-  const topNumber = document.createElement('span');
-  topNumber.className = 'column-number';
-  topNumber.textContent = question.missing === 'a' ? '?' : String(question.a);
-
-  const bottomRow = document.createElement('span');
-  bottomRow.className = 'column-row';
-
-  const operator = document.createElement('span');
-  operator.className = 'column-operator';
-  operator.textContent = question.missing === 'op' ? '?' : OP_SYMBOLS[question.op];
-
-  const bottomNumber = document.createElement('span');
-  bottomNumber.className = 'column-number';
-  bottomNumber.textContent = question.missing === 'b' ? '?' : String(question.b);
-
-  const line = document.createElement('span');
-  line.className = 'column-line';
-  line.setAttribute('aria-hidden', 'true');
-
-  // Answer input/choices live directly under the line, like written arithmetic.
-  const answerSlot = document.createElement('span');
-  answerSlot.className = 'column-answer-slot';
-  answerSlot.appendChild(els.answerArea);
-
-  bottomRow.append(operator, bottomNumber);
-  els.equation.className = 'equation equation-column';
-  els.equation.replaceChildren(topNumber, bottomRow, line, answerSlot);
-  els.equation.setAttribute('aria-label', question.display);
 }
 
 function showQuestion() {
@@ -203,12 +264,12 @@ function showQuestion() {
   clearFeedback();
   acceptingAnswers = true;
   currentQuestion = generateQuestion(settings);
-  renderEquation(currentQuestion);
+  renderClock(currentQuestion);
 
   if (settings.input === 'multichoice') {
     renderChoiceMode(currentQuestion);
   } else {
-    renderTypedMode(currentQuestion);
+    renderTypedMode();
   }
 }
 
@@ -221,65 +282,27 @@ function lockInputs() {
   }
 }
 
-const OP_INPUT_ALIASES = {
-  '+': '+',
-  '-': '-',
-  '−': '-',
-  '*': '*',
-  '×': '*',
-  x: '*',
-  X: '*',
-  '/': '/',
-  '÷': '/',
-};
-
-function normalizeOpInput(raw) {
-  const trimmed = String(raw).trim();
-  return OP_INPUT_ALIASES[trimmed] ?? null;
-}
-
-function formatAnswerForFeedback(answer, missing) {
-  if (missing === 'op') return OP_SYMBOLS[answer] ?? String(answer);
-  return String(answer);
-}
-
 function checkAnswer(rawValue) {
   if (!acceptingAnswers || !currentQuestion) return;
 
-  const isOp = currentQuestion.missing === 'op';
-  let value;
-  let correct;
+  const normalized =
+    typeof rawValue === 'string' && settings.input === 'multichoice'
+      ? String(rawValue).trim()
+      : normalizeTypedAnswer(rawValue, settings.format);
 
-  if (isOp) {
-    // Multichoice passes the raw op code ('+', '-', ...); typed input may use symbols.
-    if (typeof rawValue === 'string' && ['+', '-', '*', '/'].includes(rawValue)) {
-      value = rawValue;
-    } else {
-      value = normalizeOpInput(rawValue);
-    }
-    if (value == null) {
-      showFeedback('Enter +, −, ×, or ÷.', 'incorrect');
-      return;
-    }
-    correct = value === currentQuestion.answer;
-  } else {
-    value = typeof rawValue === 'number' ? rawValue : Number(String(rawValue).trim());
-    if (!Number.isFinite(value)) {
-      showFeedback('Enter a number.', 'incorrect');
-      return;
-    }
-    correct = value === currentQuestion.answer;
+  if (normalized == null) {
+    showFeedback('Enter a time like 3:30.', 'incorrect');
+    return;
   }
 
   lockInputs();
 
-  if (correct) {
+  if (normalized === currentQuestion.answerText) {
     incrementScore();
     showFeedback('Great job!', 'correct');
   } else {
     incrementWrong();
-    const shown = formatAnswerForFeedback(currentQuestion.answer, currentQuestion.missing);
-    showFeedback(`Try again — the answer was ${shown}.`, 'incorrect');
+    showFeedback(`Try again — the answer was ${currentQuestion.answerText}.`, 'incorrect');
   }
   updateScoreDisplay();
 
@@ -294,7 +317,6 @@ function onSubmitTyped() {
 
 function openSettingsModal() {
   applySettingsToForm(els.settingsForm, settings);
-  updateModeFieldLock();
   els.settingsError.hidden = true;
   els.settingsError.textContent = '';
   els.settingsModal.hidden = false;
@@ -304,17 +326,6 @@ function openSettingsModal() {
 function closeSettingsModal() {
   els.settingsModal.hidden = true;
   document.body.classList.remove('modal-open');
-}
-
-function updateModeFieldLock() {
-  const modeValue = els.settingsForm.querySelector('input[name="mode"]:checked')?.value;
-  const timesTable = modeValue === 'times-table';
-  if (els.standardModeFields) {
-    els.standardModeFields.hidden = timesTable;
-  }
-  if (els.timesTableHint) {
-    els.timesTableHint.hidden = !timesTable;
-  }
 }
 
 function onSettingsSubmit(event) {
@@ -347,10 +358,6 @@ function bindEvents() {
       closeSettingsModal();
     }
   });
-
-  for (const radio of els.settingsForm.querySelectorAll('input[name="mode"]')) {
-    radio.addEventListener('change', updateModeFieldLock);
-  }
 
   els.settingsForm.addEventListener('submit', onSettingsSubmit);
   els.submitBtn.addEventListener('click', onSubmitTyped);

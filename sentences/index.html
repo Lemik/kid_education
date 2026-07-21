@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kid Unscramble Practice</title>
+  <title>Kid Sentences Practice</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -12,8 +12,8 @@
       <a class="tab" href="../math/">Mathematics</a>
       <a class="tab" href="../patterns/">Patterns</a>
       <a class="tab" href="../words/">Words</a>
-      <a class="tab active" href="../unscramble/" aria-current="page">Unscramble</a>
-      <a class="tab" href="../sentences/">Sentences</a>
+      <a class="tab" href="../unscramble/">Unscramble</a>
+      <a class="tab active" href="../sentences/" aria-current="page">Sentences</a>
       <a class="tab" href="../clock/">Clock</a>
     </nav>
     <header class="top-bar">
@@ -36,12 +36,22 @@
     </header>
 
     <main class="main">
-      <div class="word-display unscramble-answer" id="answerSlots" aria-live="polite" aria-label="Answer slots">Loading…</div>
-
-      <div class="unscramble-pool" id="letterPool" aria-label="Shuffled letters"></div>
+      <div class="sentence-display" id="sentenceDisplay" aria-live="polite">Loading…</div>
 
       <div class="answer-area" id="answerArea">
-        <button type="button" class="btn btn-secondary unscramble-undo" id="undoBtn" disabled>Undo</button>
+        <div class="typed-answer" id="typedAnswer" hidden>
+          <label class="sr-only" for="wordInput">Missing word</label>
+          <input
+            type="text"
+            id="wordInput"
+            class="sentence-input"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            inputmode="text"
+          />
+          <button type="button" class="btn btn-primary" id="submitBtn">Submit</button>
+        </div>
       </div>
 
       <p class="feedback" id="feedback" aria-live="assertive"></p>
@@ -66,14 +76,6 @@
         </label>
 
         <fieldset class="field">
-          <legend>Show first letter</legend>
-          <div class="radio-row">
-            <label><input type="radio" name="first" value="y" /> Yes</label>
-            <label><input type="radio" name="first" value="n" /> No</label>
-          </div>
-        </fieldset>
-
-        <fieldset class="field">
           <legend>Show results</legend>
           <div class="radio-row">
             <label><input type="radio" name="sign" value="positive" /> Positive</label>
@@ -89,6 +91,14 @@
           </div>
         </fieldset>
 
+        <fieldset class="field">
+          <legend>Answer mode</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="input" value="answer" /> Type word</label>
+            <label><input type="radio" name="input" value="multichoice" /> Multiple choice</label>
+          </div>
+        </fieldset>
+
         <p class="form-error" id="settingsError" hidden></p>
 
         <div class="modal-actions">
@@ -99,6 +109,6 @@
     </div>
   </div>
 
-  <script type="module" src="../js/unscramble-app.js"></script>
+  <script type="module" src="../js/sentences-app.js"></script>
 </body>
 </html>
