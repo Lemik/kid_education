@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kid Clock Practice</title>
+  <title>Kid Geography Practice — Canada</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -15,9 +15,9 @@
       <a class="tab" href="../words/">Words</a>
       <a class="tab" href="../unscramble/">Unscramble</a>
       <a class="tab" href="../sentences/">Sentences</a>
-      <a class="tab active" href="../clock/" aria-current="page">Clock</a>
+      <a class="tab" href="../clock/">Clock</a>
       <a class="tab" href="../money/">Money</a>
-      <a class="tab" href="../geography/">Geography</a>
+      <a class="tab active" href="../geography/" aria-current="page">Geography</a>
     </nav>
     <header class="top-bar">
       <button type="button" class="nav-toggle" id="navToggle" aria-label="Subjects menu" aria-expanded="false" aria-controls="subjectNav">☰</button>
@@ -40,8 +40,7 @@
     </header>
 
     <main class="main">
-      <p class="clock-prompt">What time is it?</p>
-      <div class="clock-display" id="clockDisplay" aria-live="polite">Loading…</div>
+      <div class="equation" id="equation" aria-live="polite">Loading…</div>
 
       <div class="answer-area" id="answerArea">
         <div class="typed-answer" id="typedAnswer" hidden>
@@ -50,9 +49,10 @@
             type="text"
             id="answerInput"
             class="answer-input"
-            inputmode="numeric"
+            inputmode="text"
             autocomplete="off"
-            placeholder="3:30"
+            autocapitalize="words"
+            placeholder="Type your answer"
           />
           <button type="button" class="btn btn-primary" id="submitBtn">Submit</button>
         </div>
@@ -70,32 +70,28 @@
 
       <form id="settingsForm" class="settings-form">
         <fieldset class="field">
-          <legend>Clock face</legend>
+          <legend>Topic</legend>
           <div class="radio-row">
-            <label><input type="radio" name="face" value="analog" /> Analog</label>
-            <label><input type="radio" name="face" value="digital" /> Digital</label>
-            <label><input type="radio" name="face" value="both" /> Both</label>
+            <label><input type="radio" name="topic" value="capital" /> Capitals</label>
+            <label><input type="radio" name="topic" value="capital-reverse" /> Capitals reverse</label>
+            <label><input type="radio" name="topic" value="abbrev" /> Abbreviations</label>
+            <label><input type="radio" name="topic" value="abbrev-reverse" /> Abbrev reverse</label>
+            <label><input type="radio" name="topic" value="facts" /> National facts</label>
+            <label><input type="radio" name="topic" value="mixed" /> Mixed</label>
           </div>
         </fieldset>
 
         <label class="field">
-          <span>Difficulty</span>
-          <select name="diff" id="settingDiff">
-            <option value="oclock">O'clock</option>
-            <option value="half">Half hours</option>
-            <option value="quarter">Quarter hours</option>
-            <option value="five">5 minutes</option>
-            <option value="any">Any minute</option>
+          <span>Subset</span>
+          <select name="subset" id="settingSubset">
+            <option value="all">All (13)</option>
+            <option value="provinces">Provinces (10)</option>
+            <option value="territories">Territories (3)</option>
+            <option value="west">West</option>
+            <option value="atlantic">Atlantic</option>
+            <option value="easy6">Easy 6</option>
           </select>
         </label>
-
-        <fieldset class="field">
-          <legend>Time format</legend>
-          <div class="radio-row">
-            <label><input type="radio" name="format" value="12" /> 12-hour</label>
-            <label><input type="radio" name="format" value="24" /> 24-hour</label>
-          </div>
-        </fieldset>
 
         <fieldset class="field">
           <legend>Show results</legend>
@@ -134,6 +130,6 @@
   <div class="nav-backdrop" id="navBackdrop" hidden></div>
 
   <script type="module" src="../js/nav.js"></script>
-  <script type="module" src="../js/clock-app.js"></script>
+  <script type="module" src="../js/geography-app.js"></script>
 </body>
 </html>

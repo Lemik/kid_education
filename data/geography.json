@@ -1,0 +1,147 @@
+{
+  "provincesAndTerritories": [
+    {
+      "id": "bc",
+      "name": "British Columbia",
+      "capital": "Victoria",
+      "abbrev": "BC",
+      "type": "province",
+      "region": "west",
+      "famousCities": ["Vancouver"]
+    },
+    {
+      "id": "ab",
+      "name": "Alberta",
+      "capital": "Edmonton",
+      "abbrev": "AB",
+      "type": "province",
+      "region": "west",
+      "famousCities": ["Calgary"]
+    },
+    {
+      "id": "sk",
+      "name": "Saskatchewan",
+      "capital": "Regina",
+      "abbrev": "SK",
+      "type": "province",
+      "region": "west",
+      "famousCities": ["Saskatoon"]
+    },
+    {
+      "id": "mb",
+      "name": "Manitoba",
+      "capital": "Winnipeg",
+      "abbrev": "MB",
+      "type": "province",
+      "region": "west",
+      "famousCities": []
+    },
+    {
+      "id": "on",
+      "name": "Ontario",
+      "capital": "Toronto",
+      "abbrev": "ON",
+      "type": "province",
+      "region": "central",
+      "famousCities": ["Ottawa"]
+    },
+    {
+      "id": "qc",
+      "name": "Quebec",
+      "capital": "Quebec City",
+      "abbrev": "QC",
+      "type": "province",
+      "region": "central",
+      "famousCities": ["Montreal"]
+    },
+    {
+      "id": "nb",
+      "name": "New Brunswick",
+      "capital": "Fredericton",
+      "abbrev": "NB",
+      "type": "province",
+      "region": "atlantic",
+      "famousCities": ["Saint John"]
+    },
+    {
+      "id": "ns",
+      "name": "Nova Scotia",
+      "capital": "Halifax",
+      "abbrev": "NS",
+      "type": "province",
+      "region": "atlantic",
+      "famousCities": []
+    },
+    {
+      "id": "pe",
+      "name": "Prince Edward Island",
+      "capital": "Charlottetown",
+      "abbrev": "PE",
+      "type": "province",
+      "region": "atlantic",
+      "famousCities": []
+    },
+    {
+      "id": "nl",
+      "name": "Newfoundland and Labrador",
+      "capital": "St. John's",
+      "abbrev": "NL",
+      "type": "province",
+      "region": "atlantic",
+      "famousCities": []
+    },
+    {
+      "id": "yt",
+      "name": "Yukon",
+      "capital": "Whitehorse",
+      "abbrev": "YT",
+      "type": "territory",
+      "region": "north",
+      "famousCities": []
+    },
+    {
+      "id": "nt",
+      "name": "Northwest Territories",
+      "capital": "Yellowknife",
+      "abbrev": "NT",
+      "type": "territory",
+      "region": "north",
+      "famousCities": []
+    },
+    {
+      "id": "nu",
+      "name": "Nunavut",
+      "capital": "Iqaluit",
+      "abbrev": "NU",
+      "type": "territory",
+      "region": "north",
+      "famousCities": []
+    }
+  ],
+  "nationalFacts": [
+    {
+      "id": "capital-canada",
+      "prompt": "What is the capital of Canada?",
+      "answer": "Ottawa",
+      "answerType": "text"
+    },
+    {
+      "id": "num-provinces",
+      "prompt": "How many provinces does Canada have?",
+      "answer": "10",
+      "answerType": "number"
+    },
+    {
+      "id": "num-territories",
+      "prompt": "How many territories does Canada have?",
+      "answer": "3",
+      "answerType": "number"
+    },
+    {
+      "id": "num-total",
+      "prompt": "How many provinces and territories does Canada have in total?",
+      "answer": "13",
+      "answerType": "number"
+    }
+  ]
+}
