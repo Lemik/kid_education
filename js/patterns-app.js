@@ -179,9 +179,10 @@ function checkAnswer(rawValue) {
     return;
   }
 
+  const correct = value === currentQuestion.answer;
   lockInputs();
 
-  if (value === currentQuestion.answer) {
+  if (correct) {
     incrementScore();
     showFeedback('Great job!', 'correct');
   } else {
@@ -192,7 +193,7 @@ function checkAnswer(rawValue) {
 
   advanceTimeout = setTimeout(() => {
     showQuestion();
-  }, 1100);
+  }, correct ? 1100 : 3100);
 }
 
 function onSubmitTyped() {

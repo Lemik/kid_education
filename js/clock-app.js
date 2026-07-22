@@ -297,7 +297,9 @@ function checkAnswer(rawValue) {
 
   lockInputs();
 
-  if (normalized === currentQuestion.answerText) {
+  const correct = normalized === currentQuestion.answerText;
+
+  if (correct) {
     incrementScore();
     showFeedback('Great job!', 'correct');
   } else {
@@ -308,7 +310,7 @@ function checkAnswer(rawValue) {
 
   advanceTimeout = setTimeout(() => {
     showQuestion();
-  }, 1100);
+  }, correct ? 1100 : 3100);
 }
 
 function onSubmitTyped() {

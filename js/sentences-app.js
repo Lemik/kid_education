@@ -213,7 +213,7 @@ function checkAnswer(guess) {
 
   advanceTimeout = setTimeout(() => {
     showQuestion();
-  }, 1100);
+  }, correct ? 1100 : 3100);
 }
 
 function onWordChoice(word, btn) {

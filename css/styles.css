@@ -549,6 +549,11 @@ body {
   min-width: 3rem;
 }
 
+.word-slot:has(.letter-choices) {
+  min-width: 11.5rem;
+  flex: 0 1 11.5rem;
+}
+
 .word-letter,
 .word-blank {
   min-height: 1.2em;
@@ -587,16 +592,17 @@ body {
 
 .letter-choices {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem;
-  width: min(100%, 7.5rem);
+  grid-template-columns: repeat(2, minmax(5.25rem, 1fr));
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .letter-choice-btn {
-  min-height: 44px;
-  min-width: 44px;
-  font-size: 1.15rem;
-  padding: 0.25rem;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 5.25rem;
+  font-size: clamp(2rem, 7vw, 3rem);
+  padding: 0.5rem;
 }
 
 .unscramble-answer {
@@ -861,7 +867,12 @@ body.modal-open {
   }
 
   .letter-choices {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(4.75rem, 1fr));
+  }
+
+  .word-slot:has(.letter-choices) {
+    min-width: 10rem;
+    flex-basis: 10rem;
   }
 
   .modal-actions {

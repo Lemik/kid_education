@@ -295,7 +295,9 @@ function checkAnswer(rawValue) {
 
   lockInputs();
 
-  if (answersMatch(rawValue, currentQuestion)) {
+  const correct = answersMatch(rawValue, currentQuestion);
+
+  if (correct) {
     incrementScore();
     showFeedback('Great job!', 'correct');
   } else {
@@ -306,7 +308,7 @@ function checkAnswer(rawValue) {
 
   advanceTimeout = setTimeout(() => {
     showQuestion();
-  }, 1100);
+  }, correct ? 3300 : 1100);
 }
 
 function onSubmitTyped() {
