@@ -70,7 +70,7 @@ To add a new subject later:
 3. When **Show results** is **Both**, a **Wrong** counter also appears and goes up for incorrect answers.
 4. When **Time** is **Yes**, an elapsed timer is shown (`mm:ss`, or `h:mm:ss` after one hour).
 5. Open **Settings** (gear, top right) to change digits, operations, results, timer, answer mode, and number layout.
-6. Click **Go** to apply settings, reset score / wrong / timer, and reload with the new URL.
+6. Click **Go** to apply settings instantly, reset score / wrong / timer, and update the URL.
 
 Score, wrong count, and timer start time are stored in `sessionStorage` for the current browser tab only.
 

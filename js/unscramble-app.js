@@ -13,6 +13,7 @@ import {
   resetSession,
   getOrCreateStartedAt,
 } from './unscramble-storage.js';
+import { commitSettingsChange } from './apply-settings.js';
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -280,6 +281,15 @@ function closeSettingsModal() {
   document.body.classList.remove('modal-open');
 }
 
+function applyNewSettings(next) {
+  clearAdvanceTimeout();
+  stopTimer();
+  settings = next;
+  updateScoreDisplay();
+  startTimer();
+  if (wordList) showQuestion();
+}
+
 function onSettingsSubmit(event) {
   event.preventDefault();
 
@@ -290,9 +300,9 @@ function onSettingsSubmit(event) {
     return;
   }
 
-  resetSession();
-  const url = settingsToUrl(next);
-  window.location.assign(url);
+  commitSettingsChange(next, settingsToUrl, resetSession);
+  applyNewSettings(next);
+  closeSettingsModal();
 }
 
 function bindEvents() {
