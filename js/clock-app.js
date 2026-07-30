@@ -18,6 +18,7 @@ import {
   getOrCreateStartedAt,
 } from './clock-storage.js';
 import { commitSettingsChange } from './apply-settings.js';
+import { recordCorrect, recordWrong } from './streak.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const CX = 100;
@@ -302,9 +303,11 @@ function checkAnswer(rawValue) {
 
   if (correct) {
     incrementScore();
+    recordCorrect();
     showFeedback('Great job!', 'correct');
   } else {
     incrementWrong();
+    recordWrong();
     showFeedback(`Try again — the answer was ${currentQuestion.answerText}.`, 'incorrect');
   }
   updateScoreDisplay();

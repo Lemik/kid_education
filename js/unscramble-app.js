@@ -14,6 +14,7 @@ import {
   getOrCreateStartedAt,
 } from './unscramble-storage.js';
 import { commitSettingsChange } from './apply-settings.js';
+import { recordCorrect, recordWrong } from './streak.js';
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -247,9 +248,11 @@ function checkAnswer() {
 
   if (correct) {
     incrementScore();
+    recordCorrect();
     showFeedback(`Correct! ${currentQuestion.word}`, 'correct');
   } else {
     incrementWrong();
+    recordWrong();
     showFeedback(`The word was ${currentQuestion.word}`, 'incorrect');
   }
   updateScoreDisplay();

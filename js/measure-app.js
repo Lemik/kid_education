@@ -15,6 +15,7 @@ import {
   getOrCreateStartedAt,
 } from './measure-storage.js';
 import { commitSettingsChange } from './apply-settings.js';
+import { recordCorrect, recordWrong } from './streak.js';
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -191,10 +192,12 @@ function checkAnswer(rawValue) {
 
   if (correct) {
     incrementScore();
+    recordCorrect();
     showFeedback('Great job!', 'correct');
   } else {
     incrementWrong();
-    showFeedback(`Try again � the answer was ${currentQuestion.answer}.`, 'incorrect');
+    recordWrong();
+    showFeedback(`Try again — the answer was ${currentQuestion.answer}.`, 'incorrect');
   }
   updateScoreDisplay();
 

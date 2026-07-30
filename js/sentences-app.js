@@ -14,6 +14,7 @@ import {
   getOrCreateStartedAt,
 } from './sentences-storage.js';
 import { commitSettingsChange } from './apply-settings.js';
+import { recordCorrect, recordWrong } from './streak.js';
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -205,9 +206,11 @@ function checkAnswer(guess) {
 
   if (correct) {
     incrementScore();
+    recordCorrect();
     showFeedback(`Correct! ${normalized}`, 'correct');
   } else {
     incrementWrong();
+    recordWrong();
     showFeedback(`You could say: ${currentQuestion.answer}`, 'incorrect');
   }
   updateScoreDisplay();
