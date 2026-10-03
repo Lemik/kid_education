@@ -14,7 +14,7 @@ import {
   getOrCreateStartedAt,
 } from './unscramble-storage.js';
 import { commitSettingsChange } from './apply-settings.js';
-import { recordCorrect, recordWrong } from './streak.js';
+import { recordCorrect, recordWrong, withStreakFire, isHotStreak } from './streak.js';
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -249,7 +249,7 @@ function checkAnswer() {
   if (correct) {
     incrementScore();
     recordCorrect();
-    showFeedback(`Correct! ${currentQuestion.word}`, 'correct');
+    showFeedback(withStreakFire(`Correct! ${currentQuestion.word}`), isHotStreak() ? 'correct streak-hot' : 'correct');
   } else {
     incrementWrong();
     recordWrong();

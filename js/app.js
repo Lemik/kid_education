@@ -14,7 +14,7 @@ import {
   getOrCreateStartedAt,
 } from './storage.js';
 import { commitSettingsChange } from './apply-settings.js';
-import { recordCorrect, recordWrong } from './streak.js';
+import { recordCorrect, recordWrong, withStreakFire, isHotStreak } from './streak.js';
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -278,7 +278,7 @@ function checkAnswer(rawValue) {
   if (correct) {
     incrementScore();
     recordCorrect();
-    showFeedback('Great job!', 'correct');
+    showFeedback(withStreakFire('Great job!'), isHotStreak() ? 'correct streak-hot' : 'correct');
   } else {
     incrementWrong();
     recordWrong();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kid Unscramble Practice</title>
+  <title>Kid Find a Match</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -13,12 +13,12 @@
       <a class="tab" href="../measure/">Measurements</a>
       <a class="tab" href="../patterns/">Patterns</a>
       <a class="tab" href="../words/">Words</a>
-      <a class="tab active" href="../unscramble/" aria-current="page">Unscramble</a>
+      <a class="tab" href="../unscramble/">Unscramble</a>
       <a class="tab" href="../sentences/">Sentences</a>
       <a class="tab" href="../clock/">Clock</a>
       <a class="tab" href="../money/">Money</a>
       <a class="tab" href="../geography/">Geography</a>
-      <a class="tab" href="../match/">Find a Match</a>
+      <a class="tab active" href="../match/" aria-current="page">Find a Match</a>
     </nav>
     <header class="top-bar">
       <button type="button" class="nav-toggle" id="navToggle" aria-label="Subjects menu" aria-expanded="false" aria-controls="subjectNav">☰</button>
@@ -28,29 +28,27 @@
       </div>
       <div class="top-bar-spacer"></div>
       <div class="score-wrap">
-        <span class="score-label">Score</span>
-        <span class="score" id="score" aria-live="polite">0</span>
-      </div>
-      <div class="score-wrap wrong-wrap" id="wrongWrap" hidden>
-        <span class="score-label">Wrong</span>
-        <span class="score wrong" id="wrongScore" aria-live="polite">0</span>
+        <span class="score-label">Found</span>
+        <span class="score" id="score" aria-live="polite">0 / 0</span>
       </div>
       <button type="button" class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">
         ⚙
       </button>
     </header>
 
-    <main class="main">
-      <div class="word-display unscramble-answer" id="answerSlots" aria-live="polite" aria-label="Answer slots">Loading…</div>
-
-      <div class="unscramble-pool" id="letterPool" aria-label="Shuffled letters"></div>
-
-      <div class="answer-area" id="answerArea">
-        <button type="button" class="btn btn-secondary unscramble-undo" id="undoBtn" disabled>Undo</button>
-      </div>
-
-      <p class="feedback" id="feedback" aria-live="assertive"></p>
+    <main class="main match-main">
+      <p class="match-prompt" id="matchPrompt">Flip a card, then another.</p>
+      <div class="match-board" id="matchBoard" role="group" aria-label="Cards"></div>
     </main>
+  </div>
+
+  <div class="match-sign" id="matchSign" hidden>
+    <div class="match-sign-card" id="matchSignCard" role="status" aria-live="assertive">
+      <p class="match-sign-emoji" id="matchSignEmoji" aria-hidden="true">🎉</p>
+      <h2 class="match-sign-title" id="matchSignTitle">Congratulations!</h2>
+      <p class="match-sign-detail" id="matchSignDetail"></p>
+      <button type="button" class="btn btn-primary" id="playAgainBtn">Play again</button>
+    </div>
   </div>
 
   <div class="modal-overlay" id="settingsModal" hidden>
@@ -59,40 +57,50 @@
 
       <form id="settingsForm" class="settings-form">
         <label class="field">
-          <span>Word length</span>
-          <select name="len" id="settingLen">
-            <option value="3">3 letters</option>
-            <option value="4">4 letters</option>
-            <option value="5">5 letters</option>
-            <option value="6">6 letters</option>
-            <option value="3-5">3–5 letters</option>
-            <option value="4-6">4–6 letters</option>
-          </select>
+          <span>Number of cards</span>
+          <input type="number" name="cards" id="settingCards" min="6" max="100" step="2" inputmode="numeric" required />
+          <p class="field-hint">Even numbers from 6 to 100. Every card has a match.</p>
         </label>
 
         <fieldset class="field">
-          <legend>Show first letter</legend>
-          <div class="radio-row">
-            <label><input type="radio" name="first" value="y" /> Yes</label>
-            <label><input type="radio" name="first" value="n" /> No</label>
+          <legend>Show</legend>
+          <div class="checkbox-row">
+            <label><input type="checkbox" name="kind" value="pic" /> Pictures</label>
+            <label><input type="checkbox" name="kind" value="num" /> Numbers</label>
+            <label><input type="checkbox" name="kind" value="word" /> Words</label>
           </div>
         </fieldset>
 
         <fieldset class="field">
-          <legend>Show results</legend>
+          <legend>Mix</legend>
           <div class="radio-row">
-            <label><input type="radio" name="sign" value="positive" /> Positive</label>
-            <label><input type="radio" name="sign" value="both" /> Both</label>
+            <label><input type="radio" name="mix" value="y" /> Yes</label>
+            <label><input type="radio" name="mix" value="n" /> No</label>
           </div>
+          <p class="field-hint" id="mixHint"></p>
         </fieldset>
 
         <fieldset class="field">
-          <legend>Time</legend>
+          <legend>Timer</legend>
           <div class="radio-row">
             <label><input type="radio" name="time" value="y" /> Yes</label>
             <label><input type="radio" name="time" value="n" /> No</label>
           </div>
         </fieldset>
+
+        <label class="field" id="timeLimitField">
+          <span>Time limit</span>
+          <select name="limit" id="settingLimit">
+            <option value="15">15 seconds</option>
+            <option value="30">30 seconds</option>
+            <option value="60">1 minute</option>
+            <option value="120">2 minutes</option>
+            <option value="180">3 minutes</option>
+            <option value="300">5 minutes</option>
+            <option value="600">10 minutes</option>
+          </select>
+          <p class="field-hint">Counts down. If time runs out, you see how many pairs you found.</p>
+        </label>
 
         <p class="form-error" id="settingsError" hidden></p>
 
@@ -107,6 +115,6 @@
   <div class="nav-backdrop" id="navBackdrop" hidden></div>
 
   <script type="module" src="../js/nav.js"></script>
-  <script type="module" src="../js/unscramble-app.js"></script>
+  <script type="module" src="../js/match-app.js"></script>
 </body>
 </html>

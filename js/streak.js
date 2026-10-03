@@ -229,6 +229,16 @@ export function recordCorrect() {
   }
 }
 
+export function isHotStreak() {
+  return streak >= 10;
+}
+
+/** Wrap correct feedback with fire once the streak hits 10+. */
+export function withStreakFire(message) {
+  if (!isHotStreak()) return message;
+  return `🔥 ${message} 🔥`;
+}
+
 export function recordWrong() {
   const lost = streak;
   streak = 0;
