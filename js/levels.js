@@ -103,13 +103,13 @@ export const LEVELS = Object.freeze([
   { label: '3–4 digit add and subtract', ops: ['+', '-'], aMin: 100, aMax: 9999, bMin: 100, bMax: 9999, resultMax: 9999 },
 ]);
 
-export function clampLevel(value) {
+export function clampLevel(value, ladder = LEVELS) {
   const n = Math.floor(Number(value));
   if (!Number.isFinite(n)) return 1;
-  return Math.min(LEVELS.length, Math.max(1, n));
+  return Math.min(ladder.length, Math.max(1, n));
 }
 
 /** 1-based lookup. */
-export function getLevel(level) {
-  return LEVELS[clampLevel(level) - 1];
+export function getLevel(level, ladder = LEVELS) {
+  return ladder[clampLevel(level, ladder) - 1];
 }

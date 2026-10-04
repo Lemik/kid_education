@@ -18,7 +18,8 @@ kid_education/
 │   ├── settings.js     # URL settings parse/serialize
 │   ├── generator.js    # Question generation
 │   ├── levels.js       # Math level ladder (one spec per level)
-│   └── storage.js      # sessionStorage (score, wrong, timer) + localStorage (level progress)
+│   ├── storage.js      # sessionStorage (score, wrong, timer) + localStorage (level progress)
+│   └── times-*.js      # Times Tables game (app, settings, storage, levels)
 └── README.md
 ```
 
@@ -55,6 +56,7 @@ The tab bar at the top switches subjects. Each subject is a folder with its own 
 | Tab            | Path     | Status   |
 |----------------|----------|----------|
 | Mathematics    | `math/`  | Available |
+| Times Tables   | `times/` | Available |
 
 To add a new subject later:
 
@@ -100,7 +102,7 @@ Base path: `/math/`
 | Param    | Values                               | Meaning |
 |----------|--------------------------------------|---------|
 | `level`  | `1`–`40`                             | Level mode at this level. Uses only `time`, `input`, `layout` from the other params. With no `level`, `mode`, `a`, `b`, or `op` in the URL, the saved level is resumed |
-| `mode`   | `times-table`, `level` (omit = custom when `a`/`b`/`op` are set) | Times-table mode: factors 1–12, multiplication only. Ignores `a`, `b`, and `op` |
+| `mode`   | `level`, `default` (omit = custom when `a`/`b`/`op` are set) | Force level or custom mode. Old `mode=times-table` links redirect to the Times Tables game |
 | `a`      | `1`, `2`, `3`, `4`, `2-3`, `2-4`     | Digit count for the first number |
 | `b`      | same                                 | Digit count for the second number |
 | `op`     | `+`, `-`, `*`, `/` (comma-separated) | Allowed operations (one or more) |
@@ -124,7 +126,6 @@ Notes:
 
 - Division always has an integer answer.
 - Encode `+` in `op` as `%2B` in URLs (e.g. `op=%2B,-`).
-- When `mode=times-table`, `a`, `b`, and `op` are ignored; both factors are random integers from 1–12 and the operation is always ×.
 
 ### Example URLs
 
@@ -152,8 +153,37 @@ Subtraction with either-sign answers allowed:
 /math/?a=2&b=2&op=-&sign=both&time=y&input=answer&layout=column
 ```
 
-Times tables (factors 1–12, multiplication only):
+## Times Tables
+
+Its own game at `/times/`, built like Mathematics (same top bar, answer modes, layouts, and level system) but only multiplication.
+
+### Levels
+
+The ladder lives in `js/times-levels.js` (17 levels): ×2, ×10, ×5, then ×2/×5/×10 mixed, ×3, ×4, ×2–×5 and ×10 mixed, ×6, ×7, ×8, ×9, all tables to 10, ×11, ×12, all tables to 12, and finally missing factor (`? × 4 = 24`) to 10 and to 12. A single-table level asks that table times 1–10 (1–12 for ×11 and ×12), in either order.
+
+Auto-increase works the same as Mathematics: 10 correct in a row moves up a level, a wrong answer restarts the count. Progress is saved separately from Mathematics (`kidTimes.*` keys in `localStorage`).
+
+### Custom mode
+
+In Settings choose **Custom** and tick any tables from 1 to 12, pick **Multiply up to** ×10 or ×12, and optionally turn on **Missing number** (hides either factor or the result).
+
+### URL settings
+
+Base path: `/times/`
+
+| Param     | Values                    | Meaning |
+|-----------|---------------------------|---------|
+| `level`   | `1`–`17`                  | Level mode at this level. Without `level` or `tables`, the saved level is resumed |
+| `tables`  | `1`–`12` (comma-separated)| Custom mode with these tables |
+| `max`     | `10`, `12`                | Custom mode: largest other factor |
+| `missing` | `y`, `n`                  | Custom mode: hide a factor or the result |
+| `time`    | `y`, `n`                  | Show or hide the elapsed session timer |
+| `input`   | `answer`, `multichoice`   | Type the answer or pick from choices |
+| `layout`  | `side`, `column`          | Side-by-side or stacked column |
+
+Examples:
 
 ```text
-/math/?mode=times-table&sign=positive&time=y&input=multichoice&layout=column
+/times/?level=9&time=y&input=multichoice&layout=column
+/times/?tables=6,7,8&max=12&missing=n&time=y&input=answer&layout=side
 ```

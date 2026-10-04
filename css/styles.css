@@ -222,7 +222,8 @@ body {
   gap: 0.45rem;
 }
 
-#levelFields[hidden] {
+#levelFields[hidden],
+#customFields[hidden] {
   display: none;
 }
 
@@ -469,6 +470,10 @@ body {
 
 .column-row .column-number {
   justify-self: end;
+}
+
+.column-result {
+  padding-top: 0.08em;
 }
 
 .column-line {
@@ -1615,6 +1620,7 @@ body.modal-open {
 .game-card-money { background: #ecfccb; }
 .game-card-geography { background: #e0f2fe; }
 .game-card-match { background: #fae8ff; }
+.game-card-times { background: #ffe4e6; }
 
 @media (prefers-reduced-motion: reduce) {
   .match-card-inner,

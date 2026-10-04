@@ -7,7 +7,7 @@ const TIMES = new Set(['y', 'n']);
 const INPUTS = new Set(['answer', 'multichoice']);
 const LAYOUTS = new Set(['side', 'column']);
 const MISSINGS = new Set(['y', 'n']);
-const MODES = new Set(['level', 'default', 'times-table']);
+const MODES = new Set(['level', 'default']);
 
 export const DEFAULT_SETTINGS = Object.freeze({
   mode: 'default',
@@ -20,10 +20,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
   layout: 'side',
   missing: 'n',
 });
-
-export function isTimesTableMode(settings) {
-  return settings?.mode === 'times-table';
-}
 
 export function isLevelMode(settings) {
   return settings?.mode === 'level';
@@ -98,8 +94,6 @@ export function parseSettingsFromUrl(search = window.location.search, savedLevel
     });
   }
 
-  const timesTable = mode === 'times-table';
-
   const a = params.get('a');
   const b = params.get('b');
   const sign = params.get('sign');
@@ -110,9 +104,9 @@ export function parseSettingsFromUrl(search = window.location.search, savedLevel
 
   return {
     mode,
-    a: timesTable ? '1' : DIGIT_SPECS.has(a) ? a : DEFAULT_SETTINGS.a,
-    b: timesTable ? '1' : DIGIT_SPECS.has(b) ? b : DEFAULT_SETTINGS.b,
-    op: timesTable ? ['*'] : parseOps(params.get('op')),
+    a: DIGIT_SPECS.has(a) ? a : DEFAULT_SETTINGS.a,
+    b: DIGIT_SPECS.has(b) ? b : DEFAULT_SETTINGS.b,
+    op: parseOps(params.get('op')),
     sign: SIGNS.has(sign) ? sign : DEFAULT_SETTINGS.sign,
     time: TIMES.has(time) ? time : DEFAULT_SETTINGS.time,
     input: INPUTS.has(input) ? input : DEFAULT_SETTINGS.input,
@@ -134,20 +128,13 @@ export function settingsToQuery(settings) {
     params.set('layout', settings.layout);
     return params.toString();
   }
-  if (settings.mode === 'times-table') {
-    params.set('mode', 'times-table');
-  } else {
-    params.set('a', settings.a);
-    params.set('b', settings.b);
-  }
+  params.set('a', settings.a);
+  params.set('b', settings.b);
   params.set('sign', settings.sign);
   params.set('time', settings.time);
   params.set('input', settings.input);
   params.set('layout', settings.layout);
   params.set('missing', settings.missing);
-  if (settings.mode === 'times-table') {
-    return params.toString();
-  }
   const op = settings.op.map((value) => encodeURIComponent(value)).join(',');
   return `${params.toString()}&op=${op}`;
 }
@@ -169,7 +156,6 @@ export function readSettingsFromForm(form) {
   const data = new FormData(form);
   const modeRaw = String(data.get('mode') ?? '');
   const mode = MODES.has(modeRaw) ? modeRaw : DEFAULT_SETTINGS.mode;
-  const timesTable = mode === 'times-table';
 
   const sign = String(data.get('sign') ?? '');
   const time = String(data.get('time') ?? '');
@@ -195,23 +181,6 @@ export function readSettingsFromForm(form) {
     !MISSINGS.has(missing)
   ) {
     return { settings: null, error: 'Please fill in all settings.' };
-  }
-
-  if (timesTable) {
-    return {
-      settings: {
-        mode: 'times-table',
-        a: '1',
-        b: '1',
-        op: ['*'],
-        sign,
-        time,
-        input,
-        layout,
-        missing,
-      },
-      error: null,
-    };
   }
 
   const a = String(data.get('a') ?? '');

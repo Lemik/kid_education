@@ -5,8 +5,8 @@ import {
   applySettingsToForm,
   buildLevelSettings,
   isLevelMode,
-} from './settings.js';
-import { generateQuestion, generateChoices, generateOpChoices, OP_SYMBOLS } from './generator.js';
+} from './times-settings.js';
+import { generateQuestion, generateChoices } from './generator.js';
 import {
   getScore,
   incrementScore,
@@ -18,8 +18,9 @@ import {
   setSavedLevel,
   getLevelStreak,
   setLevelStreak,
-} from './storage.js';
-import { LEVELS, LEVEL_UP_TARGET } from './levels.js';
+} from './times-storage.js';
+import { LEVEL_UP_TARGET } from './levels.js';
+import { TIMES_LEVELS } from './times-levels.js';
 import { commitSettingsChange } from './apply-settings.js';
 import { recordCorrect, recordWrong, withStreakFire, isHotStreak } from './streak.js';
 
@@ -27,7 +28,6 @@ const els = {
   timerWrap: document.getElementById('timerWrap'),
   timer: document.getElementById('timer'),
   score: document.getElementById('score'),
-  wrongWrap: document.getElementById('wrongWrap'),
   wrongScore: document.getElementById('wrongScore'),
   settingsBtn: document.getElementById('settingsBtn'),
   equation: document.getElementById('equation'),
@@ -41,12 +41,10 @@ const els = {
   settingsForm: document.getElementById('settingsForm'),
   settingsError: document.getElementById('settingsError'),
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
-  standardModeFields: document.getElementById('standardModeFields'),
   levelFields: document.getElementById('levelFields'),
   levelSelect: document.getElementById('settingLevel'),
   levelHint: document.getElementById('levelHint'),
-  signField: document.getElementById('signField'),
-  missingField: document.getElementById('missingField'),
+  customFields: document.getElementById('customFields'),
   levelWrap: document.getElementById('levelWrap'),
   levelValue: document.getElementById('levelValue'),
   levelProgress: document.getElementById('levelProgress'),
@@ -55,7 +53,6 @@ const els = {
 
 let settings = parseSettingsFromUrl(window.location.search, getSavedLevel());
 let currentQuestion = null;
-let selectedChoice = null;
 let acceptingAnswers = true;
 let timerInterval = null;
 let advanceTimeout = null;
@@ -72,19 +69,15 @@ function formatElapsed(ms) {
 function updateScoreDisplay() {
   els.score.textContent = String(getScore());
   els.wrongScore.textContent = String(getWrong());
-  // "Show results: both" also displays the incorrect-answer count.
-  els.wrongWrap.hidden = settings.sign !== 'both' && !isLevelMode(settings);
 }
 
 function updateLevelDisplay() {
-  const levelMode = isLevelMode(settings);
-  els.levelWrap.hidden = !levelMode;
-  els.levelLabel.hidden = !levelMode;
-  if (!levelMode) return;
+  els.levelLabel.textContent = settings.spec.label;
+  els.levelWrap.hidden = !isLevelMode(settings);
+  if (!isLevelMode(settings)) return;
 
   els.levelValue.textContent = String(settings.level);
   els.levelProgress.textContent = `${getLevelStreak()}/${LEVEL_UP_TARGET}`;
-  els.levelLabel.textContent = settings.spec.label;
   els.levelWrap.title = `Level ${settings.level}: ${settings.spec.label}`;
 }
 
@@ -109,7 +102,7 @@ function recordLevelCorrect() {
   }
 
   setLevelStreak(0);
-  if (settings.level >= LEVELS.length) {
+  if (settings.level >= TIMES_LEVELS.length) {
     return `You mastered the top level — ${settings.spec.label}!`;
   }
 
@@ -121,7 +114,7 @@ function recordLevelCorrect() {
 
 function populateLevelSelect() {
   els.levelSelect.replaceChildren(
-    ...LEVELS.map((level, index) => {
+    ...TIMES_LEVELS.map((level, index) => {
       const option = document.createElement('option');
       option.value = String(index + 1);
       option.textContent = `${index + 1} — ${level.label}`;
@@ -174,25 +167,13 @@ function clearAdvanceTimeout() {
   }
 }
 
-function renderTypedMode(question) {
+function renderTypedMode() {
   els.typedAnswer.hidden = false;
   els.choices.hidden = true;
   els.choices.innerHTML = '';
   els.answerInput.value = '';
   els.answerInput.disabled = false;
   els.submitBtn.disabled = false;
-  selectedChoice = null;
-
-  if (question.missing === 'op') {
-    els.answerInput.type = 'text';
-    els.answerInput.inputMode = 'text';
-    els.answerInput.placeholder = '?';
-  } else {
-    els.answerInput.type = 'number';
-    els.answerInput.inputMode = 'numeric';
-    els.answerInput.placeholder = '?';
-  }
-
   els.answerInput.focus();
 }
 
@@ -200,19 +181,12 @@ function renderChoiceMode(question) {
   els.typedAnswer.hidden = true;
   els.choices.hidden = false;
   els.choices.innerHTML = '';
-  selectedChoice = null;
 
-  const isOp = question.missing === 'op';
-  const options = isOp
-    ? generateOpChoices(question.answer, settings.op)
-    : generateChoices(question.answer);
-
-  for (const value of options) {
+  for (const value of generateChoices(question.answer)) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'choice-btn';
-    btn.textContent = isOp ? OP_SYMBOLS[value] : String(value);
-    btn.dataset.value = String(value);
+    btn.textContent = String(value);
     btn.addEventListener('click', () => onChoiceSelected(btn, value));
     els.choices.appendChild(btn);
   }
@@ -221,7 +195,6 @@ function renderChoiceMode(question) {
 function onChoiceSelected(btn, value) {
   if (!acceptingAnswers) return;
 
-  selectedChoice = value;
   for (const child of els.choices.querySelectorAll('.choice-btn')) {
     child.classList.toggle('selected', child === btn);
   }
@@ -249,7 +222,7 @@ function renderEquation(question) {
 
   const operator = document.createElement('span');
   operator.className = 'column-operator';
-  operator.textContent = question.missing === 'op' ? '?' : OP_SYMBOLS[question.op];
+  operator.textContent = '×';
 
   const bottomNumber = document.createElement('span');
   bottomNumber.className = 'column-number';
@@ -286,7 +259,7 @@ function showQuestion() {
   if (settings.input === 'multichoice') {
     renderChoiceMode(currentQuestion);
   } else {
-    renderTypedMode(currentQuestion);
+    renderTypedMode();
   }
 }
 
@@ -299,55 +272,15 @@ function lockInputs() {
   }
 }
 
-const OP_INPUT_ALIASES = {
-  '+': '+',
-  '-': '-',
-  '−': '-',
-  '*': '*',
-  '×': '*',
-  x: '*',
-  X: '*',
-  '/': '/',
-  '÷': '/',
-};
-
-function normalizeOpInput(raw) {
-  const trimmed = String(raw).trim();
-  return OP_INPUT_ALIASES[trimmed] ?? null;
-}
-
-function formatAnswerForFeedback(answer, missing) {
-  if (missing === 'op') return OP_SYMBOLS[answer] ?? String(answer);
-  return String(answer);
-}
-
 function checkAnswer(rawValue) {
   if (!acceptingAnswers || !currentQuestion) return;
 
-  const isOp = currentQuestion.missing === 'op';
-  let value;
-  let correct;
-
-  if (isOp) {
-    // Multichoice passes the raw op code ('+', '-', ...); typed input may use symbols.
-    if (typeof rawValue === 'string' && ['+', '-', '*', '/'].includes(rawValue)) {
-      value = rawValue;
-    } else {
-      value = normalizeOpInput(rawValue);
-    }
-    if (value == null) {
-      showFeedback('Enter +, −, ×, or ÷.', 'incorrect');
-      return;
-    }
-    correct = value === currentQuestion.answer;
-  } else {
-    value = typeof rawValue === 'number' ? rawValue : Number(String(rawValue).trim());
-    if (!Number.isFinite(value)) {
-      showFeedback('Enter a number.', 'incorrect');
-      return;
-    }
-    correct = value === currentQuestion.answer;
+  const value = typeof rawValue === 'number' ? rawValue : Number(String(rawValue).trim());
+  if (String(rawValue).trim() === '' || !Number.isFinite(value)) {
+    showFeedback('Enter a number.', 'incorrect');
+    return;
   }
+  const correct = value === currentQuestion.answer;
 
   lockInputs();
 
@@ -365,8 +298,7 @@ function checkAnswer(rawValue) {
     incrementWrong();
     recordWrong();
     if (isLevelMode(settings)) setLevelStreak(0);
-    const shown = formatAnswerForFeedback(currentQuestion.answer, currentQuestion.missing);
-    showFeedback(`Try again — the answer was ${shown}.`, 'incorrect');
+    showFeedback(`Try again — the answer was ${currentQuestion.answer}.`, 'incorrect');
   }
   updateScoreDisplay();
   updateLevelDisplay();
@@ -384,7 +316,7 @@ function onSubmitTyped() {
 
 function openSettingsModal() {
   applySettingsToForm(els.settingsForm, settings, getSavedLevel());
-  updateModeFieldLock();
+  updateModeFields();
   els.settingsError.hidden = true;
   els.settingsError.textContent = '';
   els.settingsModal.hidden = false;
@@ -396,12 +328,10 @@ function closeSettingsModal() {
   document.body.classList.remove('modal-open');
 }
 
-function updateModeFieldLock() {
+function updateModeFields() {
   const levelMode = els.settingsForm.querySelector('input[name="mode"]:checked')?.value === 'level';
-  els.standardModeFields.hidden = levelMode;
   els.levelFields.hidden = !levelMode;
-  els.signField.hidden = levelMode;
-  els.missingField.hidden = levelMode;
+  els.customFields.hidden = levelMode;
 }
 
 function applyNewSettings(next) {
@@ -447,7 +377,7 @@ function bindEvents() {
   });
 
   for (const radio of els.settingsForm.querySelectorAll('input[name="mode"]')) {
-    radio.addEventListener('change', updateModeFieldLock);
+    radio.addEventListener('change', updateModeFields);
   }
 
   els.settingsForm.addEventListener('submit', onSettingsSubmit);
@@ -460,21 +390,7 @@ function bindEvents() {
   });
 }
 
-/** Times tables moved to their own game; send old `mode=times-table` links there. */
-function redirectLegacyTimesTable() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('mode') !== 'times-table') return false;
-
-  const next = new URLSearchParams({ tables: '1,2,3,4,5,6,7,8,9,10,11,12', max: '12' });
-  for (const key of ['missing', 'time', 'input', 'layout']) {
-    if (params.has(key)) next.set(key, params.get(key));
-  }
-  window.location.replace(`../times/?${next.toString().replaceAll('%2C', ',')}`);
-  return true;
-}
-
 function init() {
-  settings = parseSettingsFromUrl(window.location.search, getSavedLevel());
   populateLevelSelect();
   if (isLevelMode(settings)) {
     saveCurrentLevel(settings.level);
@@ -487,4 +403,4 @@ function init() {
   showQuestion();
 }
 
-if (!redirectLegacyTimesTable()) init();
+init();

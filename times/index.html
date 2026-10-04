@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kid Geography Practice — Canada</title>
+  <title>Times Tables</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -11,7 +11,7 @@
     <nav class="tabs" id="subjectNav" aria-label="Subjects">
       <a class="tab tab-home" href="../">Home</a>
       <a class="tab" href="../math/">Mathematics</a>
-      <a class="tab" href="../times/">Times Tables</a>
+      <a class="tab active" href="../times/" aria-current="page">Times Tables</a>
       <a class="tab" href="../measure/">Measurements</a>
       <a class="tab" href="../patterns/">Patterns</a>
       <a class="tab" href="../words/">Words</a>
@@ -19,7 +19,7 @@
       <a class="tab" href="../sentences/">Sentences</a>
       <a class="tab" href="../clock/">Clock</a>
       <a class="tab" href="../money/">Money</a>
-      <a class="tab active" href="../geography/" aria-current="page">Geography</a>
+      <a class="tab" href="../geography/">Geography</a>
       <a class="tab" href="../match/">Find a Match</a>
     </nav>
     <header class="top-bar">
@@ -30,11 +30,16 @@
         <span class="timer" id="timer" aria-live="polite">00:00</span>
       </div>
       <div class="top-bar-spacer"></div>
+      <div class="score-wrap level-wrap" id="levelWrap" hidden>
+        <span class="score-label">Level</span>
+        <span class="score" id="levelValue">1</span>
+        <span class="level-progress" id="levelProgress" aria-live="polite">0/10</span>
+      </div>
       <div class="score-wrap">
         <span class="score-label">Score</span>
         <span class="score" id="score" aria-live="polite">0</span>
       </div>
-      <div class="score-wrap wrong-wrap" id="wrongWrap" hidden>
+      <div class="score-wrap wrong-wrap" id="wrongWrap">
         <span class="score-label">Wrong</span>
         <span class="score wrong" id="wrongScore" aria-live="polite">0</span>
       </div>
@@ -44,19 +49,19 @@
     </header>
 
     <main class="main">
+      <p class="level-label" id="levelLabel"></p>
       <div class="equation" id="equation" aria-live="polite">Loading…</div>
 
       <div class="answer-area" id="answerArea">
         <div class="typed-answer" id="typedAnswer" hidden>
           <label class="sr-only" for="answerInput">Your answer</label>
           <input
-            type="text"
+            type="number"
             id="answerInput"
             class="answer-input"
-            inputmode="text"
+            inputmode="numeric"
             autocomplete="off"
-            autocapitalize="words"
-            placeholder="Type your answer"
+            placeholder="?"
           />
           <button type="button" class="btn btn-primary" id="submitBtn">Submit</button>
         </div>
@@ -74,36 +79,56 @@
 
       <form id="settingsForm" class="settings-form">
         <fieldset class="field">
-          <legend>Topic</legend>
+          <legend>Practice mode</legend>
           <div class="radio-row">
-            <label><input type="radio" name="topic" value="capital" /> Capitals</label>
-            <label><input type="radio" name="topic" value="capital-reverse" /> Capitals reverse</label>
-            <label><input type="radio" name="topic" value="abbrev" /> Abbreviations</label>
-            <label><input type="radio" name="topic" value="abbrev-reverse" /> Abbrev reverse</label>
-            <label><input type="radio" name="topic" value="facts" /> National facts</label>
-            <label><input type="radio" name="topic" value="mixed" /> Mixed</label>
+            <label><input type="radio" name="mode" value="level" /> Level</label>
+            <label><input type="radio" name="mode" value="custom" /> Custom</label>
           </div>
         </fieldset>
 
-        <label class="field">
-          <span>Subset</span>
-          <select name="subset" id="settingSubset">
-            <option value="all">All (13)</option>
-            <option value="provinces">Provinces (10)</option>
-            <option value="territories">Territories (3)</option>
-            <option value="west">West</option>
-            <option value="atlantic">Atlantic</option>
-            <option value="easy6">Easy 6</option>
-          </select>
-        </label>
+        <div id="levelFields" hidden>
+          <label class="field">
+            <span>Level</span>
+            <select name="level" id="settingLevel"></select>
+          </label>
+          <p class="field-hint" id="levelHint"></p>
+        </div>
 
-        <fieldset class="field">
-          <legend>Show results</legend>
-          <div class="radio-row">
-            <label><input type="radio" name="sign" value="positive" /> Positive</label>
-            <label><input type="radio" name="sign" value="both" /> Both</label>
-          </div>
-        </fieldset>
+        <div id="customFields" class="settings-form" hidden>
+          <fieldset class="field">
+            <legend>Tables</legend>
+            <div class="checkbox-row">
+              <label><input type="checkbox" name="tables" value="1" /> 1</label>
+              <label><input type="checkbox" name="tables" value="2" /> 2</label>
+              <label><input type="checkbox" name="tables" value="3" /> 3</label>
+              <label><input type="checkbox" name="tables" value="4" /> 4</label>
+              <label><input type="checkbox" name="tables" value="5" /> 5</label>
+              <label><input type="checkbox" name="tables" value="6" /> 6</label>
+              <label><input type="checkbox" name="tables" value="7" /> 7</label>
+              <label><input type="checkbox" name="tables" value="8" /> 8</label>
+              <label><input type="checkbox" name="tables" value="9" /> 9</label>
+              <label><input type="checkbox" name="tables" value="10" /> 10</label>
+              <label><input type="checkbox" name="tables" value="11" /> 11</label>
+              <label><input type="checkbox" name="tables" value="12" /> 12</label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Multiply up to</legend>
+            <div class="radio-row">
+              <label><input type="radio" name="max" value="10" /> × 10</label>
+              <label><input type="radio" name="max" value="12" /> × 12</label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Missing number</legend>
+            <div class="radio-row">
+              <label><input type="radio" name="missing" value="y" /> Yes</label>
+              <label><input type="radio" name="missing" value="n" /> No</label>
+            </div>
+          </fieldset>
+        </div>
 
         <fieldset class="field">
           <legend>Time</legend>
@@ -121,6 +146,14 @@
           </div>
         </fieldset>
 
+        <fieldset class="field">
+          <legend>Number layout</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="layout" value="side" /> Side by side</label>
+            <label><input type="radio" name="layout" value="column" /> One column</label>
+          </div>
+        </fieldset>
+
         <p class="form-error" id="settingsError" hidden></p>
 
         <div class="modal-actions">
@@ -134,6 +167,6 @@
   <div class="nav-backdrop" id="navBackdrop" hidden></div>
 
   <script type="module" src="../js/nav.js"></script>
-  <script type="module" src="../js/geography-app.js"></script>
+  <script type="module" src="../js/times-app.js"></script>
 </body>
 </html>

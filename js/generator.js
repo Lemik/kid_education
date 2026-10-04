@@ -139,14 +139,8 @@ function outsideSpec(candidate, spec) {
 }
 
 function generateOnce(settings) {
-  if (settings.mode === 'level') {
+  if (settings.spec) {
     return generateFromSpec(settings.spec);
-  }
-
-  if (settings.mode === 'times-table') {
-    const a = randomInt(1, 12);
-    const b = randomInt(1, 12);
-    return { a, b, op: '*', answer: a * b };
   }
 
   const op = pick(settings.op);
