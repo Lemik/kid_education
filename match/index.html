@@ -31,13 +31,16 @@
         <span class="score-label">Found</span>
         <span class="score" id="score" aria-live="polite">0 / 0</span>
       </div>
+      <div class="match-help">
+        <button type="button" class="match-help-btn" id="helpBtn" aria-label="How to play" aria-expanded="false" aria-controls="matchPrompt">i</button>
+        <p class="match-prompt" id="matchPrompt" hidden>Flip a card, then another.</p>
+      </div>
       <button type="button" class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">
         ⚙
       </button>
     </header>
 
     <main class="main match-main">
-      <p class="match-prompt" id="matchPrompt">Flip a card, then another.</p>
       <div class="match-board" id="matchBoard" role="group" aria-label="Cards"></div>
     </main>
   </div>

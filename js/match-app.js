@@ -16,6 +16,8 @@ const els = {
   timer: document.getElementById('timer'),
   score: document.getElementById('score'),
   settingsBtn: document.getElementById('settingsBtn'),
+  help: document.querySelector('.match-help'),
+  helpBtn: document.getElementById('helpBtn'),
   prompt: document.getElementById('matchPrompt'),
   board: document.getElementById('matchBoard'),
   sign: document.getElementById('matchSign'),
@@ -167,7 +169,9 @@ function faceContent(card) {
 
   const span = document.createElement('span');
   span.className = card.kind === 'number' ? 'match-number' : 'match-word';
-  if (card.kind === 'word' && card.text.length > 8) {
+  if (card.kind === 'word' && card.text.length > 12) {
+    span.classList.add('is-longer');
+  } else if (card.kind === 'word' && card.text.length > 8) {
     span.classList.add('is-long');
   }
   span.textContent = card.text;
@@ -292,6 +296,11 @@ function onCardClick(index) {
   }, MISMATCH_MS);
 }
 
+function setHelpOpen(open) {
+  els.prompt.hidden = !open;
+  els.helpBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
 function startRound() {
   clearMismatchTimer();
   stopTimer();
@@ -331,6 +340,7 @@ function syncSettingsFormHints() {
 }
 
 function openSettingsModal() {
+  setHelpOpen(false);
   applySettingsToForm(els.settingsForm, settings);
   syncSettingsFormHints();
   els.settingsError.hidden = true;
@@ -367,6 +377,9 @@ function onSettingsSubmit(event) {
 
 function bindEvents() {
   els.settingsBtn.addEventListener('click', openSettingsModal);
+  els.helpBtn.addEventListener('click', () => {
+    setHelpOpen(els.prompt.hidden);
+  });
   els.cancelSettingsBtn.addEventListener('click', closeSettingsModal);
   els.playAgainBtn.addEventListener('click', startRound);
 
@@ -376,10 +389,18 @@ function bindEvents() {
     }
   });
 
+  document.addEventListener('click', (event) => {
+    if (els.prompt.hidden || els.help.contains(event.target)) return;
+    setHelpOpen(false);
+  });
+
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !els.settingsModal.hidden) {
+    if (event.key !== 'Escape') return;
+    if (!els.settingsModal.hidden) {
       closeSettingsModal();
+      return;
     }
+    if (!els.prompt.hidden) setHelpOpen(false);
   });
 
   els.settingsForm.addEventListener('submit', onSettingsSubmit);
