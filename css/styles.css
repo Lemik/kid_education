@@ -96,6 +96,10 @@ body {
   border-color: var(--border);
 }
 
+.tab-home {
+  margin-bottom: 0.45rem;
+}
+
 .top-bar {
   grid-area: topbar;
   display: flex;
@@ -1475,8 +1479,115 @@ body.modal-open {
   color: var(--text);
 }
 
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 48px;
+  padding: 0 1rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--primary-dark);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(26, 39, 68, 0.06);
+}
+
+.home-btn:hover {
+  background: #f8fafc;
+}
+
+.home-btn:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.home-heading {
+  margin: 0;
+  font-size: clamp(1.45rem, 3vw, 1.85rem);
+  font-weight: 800;
+}
+
+.home-main {
+  align-self: start;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.app:has(.home-main) {
+  max-width: 1100px;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  min-height: 148px;
+  padding: 1.1rem 1rem 1rem;
+  border-radius: 18px;
+  border: 2px solid transparent;
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: 0 6px 16px rgba(26, 39, 68, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(26, 39, 68, 0.14);
+}
+
+.game-card:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+.game-card-icon {
+  font-size: 2.1rem;
+  line-height: 1;
+}
+
+.game-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.game-card-desc {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.game-card-math { background: #dbeafe; }
+.game-card-measure { background: #dcfce7; }
+.game-card-patterns { background: #ede9fe; }
+.game-card-words { background: #fef3c7; }
+.game-card-unscramble { background: #ccfbf1; }
+.game-card-sentences { background: #fce7f3; }
+.game-card-clock { background: #ffedd5; }
+.game-card-money { background: #ecfccb; }
+.game-card-geography { background: #e0f2fe; }
+.game-card-match { background: #fae8ff; }
+
 @media (prefers-reduced-motion: reduce) {
-  .match-card-inner {
+  .match-card-inner,
+  .game-card {
     transition: none;
   }
 }
