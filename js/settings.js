@@ -1,3 +1,5 @@
+import { clampLevel, getLevel } from './levels.js';
+
 const DIGIT_SPECS = new Set(['1', '2', '3', '4', '2-3', '2-4']);
 const OPS = new Set(['+', '-', '*', '/']);
 const SIGNS = new Set(['positive', 'both']);
@@ -5,7 +7,7 @@ const TIMES = new Set(['y', 'n']);
 const INPUTS = new Set(['answer', 'multichoice']);
 const LAYOUTS = new Set(['side', 'column']);
 const MISSINGS = new Set(['y', 'n']);
-const MODES = new Set(['default', 'times-table']);
+const MODES = new Set(['level', 'default', 'times-table']);
 
 export const DEFAULT_SETTINGS = Object.freeze({
   mode: 'default',
@@ -21,6 +23,32 @@ export const DEFAULT_SETTINGS = Object.freeze({
 
 export function isTimesTableMode(settings) {
   return settings?.mode === 'times-table';
+}
+
+export function isLevelMode(settings) {
+  return settings?.mode === 'level';
+}
+
+/**
+ * Settings for a level: question shape comes from the level spec,
+ * display preferences (time, input, layout) from `display`.
+ */
+export function buildLevelSettings(level, display = DEFAULT_SETTINGS) {
+  const n = clampLevel(level);
+  const spec = getLevel(n);
+  return {
+    mode: 'level',
+    level: n,
+    spec,
+    a: '1',
+    b: '1',
+    op: [...spec.ops],
+    sign: 'positive',
+    time: TIMES.has(display.time) ? display.time : DEFAULT_SETTINGS.time,
+    input: INPUTS.has(display.input) ? display.input : DEFAULT_SETTINGS.input,
+    layout: LAYOUTS.has(display.layout) ? display.layout : DEFAULT_SETTINGS.layout,
+    missing: spec.missing ? 'y' : 'n',
+  };
 }
 
 function parseOps(raw) {
@@ -43,12 +71,33 @@ function parseOps(raw) {
 /**
  * Parse settings from the current URL query string.
  * Invalid values fall back to defaults.
+ *
+ * Level mode is used when `level` / `mode=level` is present, or when the URL
+ * has no custom question params at all (then `savedLevel` is resumed).
  */
-export function parseSettingsFromUrl(search = window.location.search) {
+export function parseSettingsFromUrl(search = window.location.search, savedLevel = 1) {
   const params = new URLSearchParams(search);
 
   const modeRaw = params.get('mode');
-  const mode = MODES.has(modeRaw) ? modeRaw : DEFAULT_SETTINGS.mode;
+  const hasCustomParams = params.has('a') || params.has('b') || params.has('op');
+  let mode;
+  if (MODES.has(modeRaw)) {
+    mode = modeRaw;
+  } else if (params.has('level') || !hasCustomParams) {
+    mode = 'level';
+  } else {
+    mode = 'default';
+  }
+
+  if (mode === 'level') {
+    const level = params.has('level') ? params.get('level') : savedLevel;
+    return buildLevelSettings(level, {
+      time: params.get('time'),
+      input: params.get('input'),
+      layout: params.get('layout'),
+    });
+  }
+
   const timesTable = mode === 'times-table';
 
   const a = params.get('a');
@@ -78,6 +127,13 @@ export function parseSettingsFromUrl(search = window.location.search) {
  */
 export function settingsToQuery(settings) {
   const params = new URLSearchParams();
+  if (settings.mode === 'level') {
+    params.set('level', String(settings.level));
+    params.set('time', settings.time);
+    params.set('input', settings.input);
+    params.set('layout', settings.layout);
+    return params.toString();
+  }
   if (settings.mode === 'times-table') {
     params.set('mode', 'times-table');
   } else {
@@ -120,6 +176,16 @@ export function readSettingsFromForm(form) {
   const input = String(data.get('input') ?? '');
   const layout = String(data.get('layout') ?? '');
   const missing = String(data.get('missing') ?? '');
+
+  if (mode === 'level') {
+    if (!TIMES.has(time) || !INPUTS.has(input) || !LAYOUTS.has(layout)) {
+      return { settings: null, error: 'Please fill in all settings.' };
+    }
+    return {
+      settings: buildLevelSettings(data.get('level'), { time, input, layout }),
+      error: null,
+    };
+  }
 
   if (
     !SIGNS.has(sign) ||
@@ -168,10 +234,13 @@ export function readSettingsFromForm(form) {
 
 /**
  * Populate the settings modal form from a settings object.
+ * `savedLevel` preselects the level dropdown when not in level mode.
  */
-export function applySettingsToForm(form, settings) {
+export function applySettingsToForm(form, settings, savedLevel = 1) {
   const modeInput = form.querySelector(`input[name="mode"][value="${settings.mode}"]`);
   if (modeInput) modeInput.checked = true;
+
+  form.level.value = String(clampLevel(settings.level ?? savedLevel));
 
   form.a.value = settings.a;
   form.b.value = settings.b;

@@ -96,7 +96,53 @@ function generateDivision(settings) {
   return { a, b, op: '/', answer: quotient };
 }
 
+/**
+ * Level mode: operands come from explicit ranges or fixed times tables
+ * (see js/levels.js for the spec shape).
+ */
+function generateFromSpec(spec) {
+  const op = pick(spec.ops);
+
+  if (op === '*' && spec.tables) {
+    const table = pick(spec.tables);
+    const other = randomInt(1, spec.factorMax ?? 10);
+    const [a, b] = Math.random() < 0.5 ? [table, other] : [other, table];
+    return { a, b, op, answer: a * b };
+  }
+
+  if (op === '/' && spec.tables) {
+    const b = pick(spec.tables);
+    const quotient = randomInt(1, spec.factorMax ?? 10);
+    return { a: b * quotient, b, op, answer: quotient };
+  }
+
+  if (op === '/') {
+    const b = randomInt(spec.bMin, spec.bMax);
+    const minQ = Math.max(1, Math.ceil(spec.aMin / b));
+    const maxQ = Math.max(minQ, Math.floor(spec.aMax / b));
+    const quotient = randomInt(minQ, maxQ);
+    return { a: b * quotient, b, op, answer: quotient };
+  }
+
+  const a = randomInt(spec.aMin, spec.aMax);
+  const b = randomInt(spec.bMin, spec.bMax);
+  return { a, b, op, answer: compute(a, b, op) };
+}
+
+/** Level questions always have a positive result, even when a number is hidden. */
+function outsideSpec(candidate, spec) {
+  if (!spec) return false;
+  if (candidate.answer <= 0) return true;
+  if (spec.resultMax == null) return false;
+  if (candidate.op !== '+' && candidate.op !== '*') return false;
+  return candidate.answer > spec.resultMax;
+}
+
 function generateOnce(settings) {
+  if (settings.mode === 'level') {
+    return generateFromSpec(settings.spec);
+  }
+
   if (settings.mode === 'times-table') {
     const a = randomInt(1, 12);
     const b = randomInt(1, 12);
@@ -164,10 +210,16 @@ export function generateQuestion(settings, maxAttempts = 50) {
     const result = candidate.answer;
 
     if (!Number.isInteger(result)) continue;
+    if (outsideSpec(candidate, settings.spec)) continue;
 
     last = { a: candidate.a, b: candidate.b, op: candidate.op, result };
 
-    const missing = settings.missing === 'y' ? pick(MISSING) : 'result';
+    let missing = 'result';
+    if (settings.spec?.missing) {
+      missing = pick(settings.spec.missing);
+    } else if (settings.missing === 'y') {
+      missing = pick(MISSING);
+    }
 
     if (missing === 'op') {
       const matches = opsMatching(candidate.a, candidate.b, result, settings.op);
@@ -211,7 +263,7 @@ export function generateChoices(correctAnswer, count = 4) {
     } else {
       wrong = correctAnswer + randomInt(-20, 20);
     }
-    if (wrong !== correctAnswer) {
+    if (wrong !== correctAnswer && (correctAnswer < 0 || wrong >= 0)) {
       choices.add(wrong);
     }
   }

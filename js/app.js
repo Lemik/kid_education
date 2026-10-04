@@ -3,6 +3,8 @@ import {
   settingsToUrl,
   readSettingsFromForm,
   applySettingsToForm,
+  buildLevelSettings,
+  isLevelMode,
 } from './settings.js';
 import { generateQuestion, generateChoices, generateOpChoices, OP_SYMBOLS } from './generator.js';
 import {
@@ -12,7 +14,12 @@ import {
   incrementWrong,
   resetSession,
   getOrCreateStartedAt,
+  getSavedLevel,
+  setSavedLevel,
+  getLevelStreak,
+  setLevelStreak,
 } from './storage.js';
+import { LEVELS, LEVEL_UP_TARGET } from './levels.js';
 import { commitSettingsChange } from './apply-settings.js';
 import { recordCorrect, recordWrong, withStreakFire, isHotStreak } from './streak.js';
 
@@ -36,9 +43,18 @@ const els = {
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
   standardModeFields: document.getElementById('standardModeFields'),
   timesTableHint: document.getElementById('timesTableHint'),
+  levelFields: document.getElementById('levelFields'),
+  levelSelect: document.getElementById('settingLevel'),
+  levelHint: document.getElementById('levelHint'),
+  signField: document.getElementById('signField'),
+  missingField: document.getElementById('missingField'),
+  levelWrap: document.getElementById('levelWrap'),
+  levelValue: document.getElementById('levelValue'),
+  levelProgress: document.getElementById('levelProgress'),
+  levelLabel: document.getElementById('levelLabel'),
 };
 
-let settings = parseSettingsFromUrl();
+let settings = parseSettingsFromUrl(window.location.search, getSavedLevel());
 let currentQuestion = null;
 let selectedChoice = null;
 let acceptingAnswers = true;
@@ -58,7 +74,62 @@ function updateScoreDisplay() {
   els.score.textContent = String(getScore());
   els.wrongScore.textContent = String(getWrong());
   // "Show results: both" also displays the incorrect-answer count.
-  els.wrongWrap.hidden = settings.sign !== 'both';
+  els.wrongWrap.hidden = settings.sign !== 'both' && !isLevelMode(settings);
+}
+
+function updateLevelDisplay() {
+  const levelMode = isLevelMode(settings);
+  els.levelWrap.hidden = !levelMode;
+  els.levelLabel.hidden = !levelMode;
+  if (!levelMode) return;
+
+  els.levelValue.textContent = String(settings.level);
+  els.levelProgress.textContent = `${getLevelStreak()}/${LEVEL_UP_TARGET}`;
+  els.levelLabel.textContent = settings.spec.label;
+  els.levelWrap.title = `Level ${settings.level}: ${settings.spec.label}`;
+}
+
+/** Make `level` the child's current level; switching levels restarts the streak. */
+function saveCurrentLevel(level) {
+  if (getSavedLevel() === level) return;
+  setSavedLevel(level);
+  setLevelStreak(0);
+}
+
+/**
+ * Count a correct answer toward the next level.
+ * Returns a celebration message when the level changes (or is mastered).
+ */
+function recordLevelCorrect() {
+  if (!isLevelMode(settings)) return null;
+
+  const streak = getLevelStreak() + 1;
+  if (streak < LEVEL_UP_TARGET) {
+    setLevelStreak(streak);
+    return null;
+  }
+
+  setLevelStreak(0);
+  if (settings.level >= LEVELS.length) {
+    return `You mastered the top level — ${settings.spec.label}!`;
+  }
+
+  settings = buildLevelSettings(settings.level + 1, settings);
+  setSavedLevel(settings.level);
+  history.replaceState(null, '', settingsToUrl(settings));
+  return `Level up! Level ${settings.level} — ${settings.spec.label}`;
+}
+
+function populateLevelSelect() {
+  els.levelSelect.replaceChildren(
+    ...LEVELS.map((level, index) => {
+      const option = document.createElement('option');
+      option.value = String(index + 1);
+      option.textContent = `${index + 1} — ${level.label}`;
+      return option;
+    }),
+  );
+  els.levelHint.textContent = `Moves up a level after ${LEVEL_UP_TARGET} correct answers in a row.`;
 }
 
 function clearFeedback() {
@@ -275,21 +346,31 @@ function checkAnswer(rawValue) {
 
   lockInputs();
 
+  let levelMessage = null;
   if (correct) {
     incrementScore();
     recordCorrect();
-    showFeedback(withStreakFire('Great job!'), isHotStreak() ? 'correct streak-hot' : 'correct');
+    levelMessage = recordLevelCorrect();
+    if (levelMessage) {
+      showFeedback(levelMessage, 'correct level-up');
+    } else {
+      showFeedback(withStreakFire('Great job!'), isHotStreak() ? 'correct streak-hot' : 'correct');
+    }
   } else {
     incrementWrong();
     recordWrong();
+    if (isLevelMode(settings)) setLevelStreak(0);
     const shown = formatAnswerForFeedback(currentQuestion.answer, currentQuestion.missing);
     showFeedback(`Try again — the answer was ${shown}.`, 'incorrect');
   }
   updateScoreDisplay();
+  updateLevelDisplay();
 
+  let delay = correct ? 1100 : 3100;
+  if (levelMessage) delay = 2600;
   advanceTimeout = setTimeout(() => {
     showQuestion();
-  }, correct ? 1100 : 3100);
+  }, delay);
 }
 
 function onSubmitTyped() {
@@ -297,7 +378,7 @@ function onSubmitTyped() {
 }
 
 function openSettingsModal() {
-  applySettingsToForm(els.settingsForm, settings);
+  applySettingsToForm(els.settingsForm, settings, getSavedLevel());
   updateModeFieldLock();
   els.settingsError.hidden = true;
   els.settingsError.textContent = '';
@@ -313,19 +394,21 @@ function closeSettingsModal() {
 function updateModeFieldLock() {
   const modeValue = els.settingsForm.querySelector('input[name="mode"]:checked')?.value;
   const timesTable = modeValue === 'times-table';
-  if (els.standardModeFields) {
-    els.standardModeFields.hidden = timesTable;
-  }
-  if (els.timesTableHint) {
-    els.timesTableHint.hidden = !timesTable;
-  }
+  const levelMode = modeValue === 'level';
+  els.standardModeFields.hidden = timesTable || levelMode;
+  els.timesTableHint.hidden = !timesTable;
+  els.levelFields.hidden = !levelMode;
+  els.signField.hidden = levelMode;
+  els.missingField.hidden = levelMode;
 }
 
 function applyNewSettings(next) {
   clearAdvanceTimeout();
   stopTimer();
   settings = next;
+  if (isLevelMode(settings)) saveCurrentLevel(settings.level);
   updateScoreDisplay();
+  updateLevelDisplay();
   startTimer();
   showQuestion();
 }
@@ -376,8 +459,14 @@ function bindEvents() {
 }
 
 function init() {
-  settings = parseSettingsFromUrl();
+  settings = parseSettingsFromUrl(window.location.search, getSavedLevel());
+  populateLevelSelect();
+  if (isLevelMode(settings)) {
+    saveCurrentLevel(settings.level);
+    history.replaceState(null, '', settingsToUrl(settings));
+  }
   updateScoreDisplay();
+  updateLevelDisplay();
   startTimer();
   bindEvents();
   showQuestion();

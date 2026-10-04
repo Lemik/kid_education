@@ -29,6 +29,11 @@
         <span class="timer" id="timer" aria-live="polite">00:00</span>
       </div>
       <div class="top-bar-spacer"></div>
+      <div class="score-wrap level-wrap" id="levelWrap" hidden>
+        <span class="score-label">Level</span>
+        <span class="score" id="levelValue">1</span>
+        <span class="level-progress" id="levelProgress" aria-live="polite">0/10</span>
+      </div>
       <div class="score-wrap">
         <span class="score-label">Score</span>
         <span class="score" id="score" aria-live="polite">0</span>
@@ -43,6 +48,7 @@
     </header>
 
     <main class="main">
+      <p class="level-label" id="levelLabel" hidden></p>
       <div class="equation" id="equation" aria-live="polite">Loading…</div>
 
       <div class="answer-area" id="answerArea">
@@ -74,11 +80,20 @@
         <fieldset class="field">
           <legend>Practice mode</legend>
           <div class="radio-row">
-            <label><input type="radio" name="mode" value="default" /> Standard</label>
+            <label><input type="radio" name="mode" value="level" /> Level</label>
+            <label><input type="radio" name="mode" value="default" /> Custom</label>
             <label><input type="radio" name="mode" value="times-table" /> Times tables</label>
           </div>
           <p class="field-hint" id="timesTableHint" hidden>Factors 1–12, multiplication only</p>
         </fieldset>
+
+        <div id="levelFields" hidden>
+          <label class="field">
+            <span>Level</span>
+            <select name="level" id="settingLevel"></select>
+          </label>
+          <p class="field-hint" id="levelHint"></p>
+        </div>
 
         <div id="standardModeFields">
           <label class="field">
@@ -116,7 +131,7 @@
           </fieldset>
         </div>
 
-        <fieldset class="field">
+        <fieldset class="field" id="signField">
           <legend>Show results</legend>
           <div class="radio-row">
             <label><input type="radio" name="sign" value="positive" /> Positive</label>
@@ -148,7 +163,7 @@
           </div>
         </fieldset>
 
-        <fieldset class="field">
+        <fieldset class="field" id="missingField">
           <legend>Missing number</legend>
           <div class="radio-row">
             <label><input type="radio" name="missing" value="y" /> Yes</label>

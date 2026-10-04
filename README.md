@@ -17,7 +17,8 @@ kid_education/
 │   ├── app.js          # Math UI (timer, score, answers, settings modal)
 │   ├── settings.js     # URL settings parse/serialize
 │   ├── generator.js    # Question generation
-│   └── storage.js      # sessionStorage (score, wrong, timer start)
+│   ├── levels.js       # Math level ladder (one spec per level)
+│   └── storage.js      # sessionStorage (score, wrong, timer) + localStorage (level progress)
 └── README.md
 ```
 
@@ -67,12 +68,30 @@ To add a new subject later:
 
 1. Read the equation and type an answer or pick a choice.
 2. **Score** goes up by 1 for each correct answer.
-3. When **Show results** is **Both**, a **Wrong** counter also appears and goes up for incorrect answers.
+3. When **Show results** is **Both** (or in Level mode), a **Wrong** counter also appears and goes up for incorrect answers.
 4. When **Time** is **Yes**, an elapsed timer is shown (`mm:ss`, or `h:mm:ss` after one hour).
-5. Open **Settings** (gear, top right) to change digits, operations, results, timer, answer mode, and number layout.
+5. Open **Settings** (gear, top right) to pick a level, or switch to **Custom** to choose digits, operations, and results yourself. Timer, answer mode, and number layout apply to every mode.
 6. Click **Go** to apply settings instantly, reset score / wrong / timer, and update the URL.
 
 Score, wrong count, and timer start time are stored in `sessionStorage` for the current browser tab only.
+
+### Levels
+
+Level mode is the default. The ladder lives in `js/levels.js` and climbs in small steps so a child can stay on one concept as long as needed:
+
+| Levels | Concept |
+|--------|---------|
+| 1–8    | Addition and subtraction within 5, 10, 20 |
+| 9–10   | Missing numbers (`? + 3 = 7`) within 10 and 20 |
+| 11–16  | Two-digit addition and subtraction within 100 |
+| 17–29  | Times tables one at a time (×2, ×5, ×10, ×3, ×4, … ×9), then all to 10 and 12 |
+| 30–34  | Division as the inverse of the tables, mixed ×/÷, missing factor |
+| 35–40  | 3-digit +/−, 2-digit × and ÷ by 1-digit, all four operations, 3–4 digit +/− |
+
+- **Auto-increase:** after 10 correct answers in a row (`LEVEL_UP_TARGET` in `js/levels.js`), the level goes up. A wrong answer restarts the count. The top bar shows the level number and progress (e.g. `4/10`), and the level name appears above the question.
+- **Resume:** the current level and progress are saved in `localStorage`, so opening `/math/` again continues where the child left off.
+- **Pick a level:** in Settings choose **Level** and any level from the list. Changing the level restarts the progress count.
+- Levels are plain data — reorder, split, or add entries in `LEVELS` to change the ladder.
 
 ### URL settings
 
@@ -80,7 +99,8 @@ Base path: `/math/`
 
 | Param    | Values                               | Meaning |
 |----------|--------------------------------------|---------|
-| `mode`   | `times-table` (omit = standard)      | Times-table mode: factors 1–12, multiplication only. Ignores `a`, `b`, and `op` |
+| `level`  | `1`–`40`                             | Level mode at this level. Uses only `time`, `input`, `layout` from the other params. With no `level`, `mode`, `a`, `b`, or `op` in the URL, the saved level is resumed |
+| `mode`   | `times-table`, `level` (omit = custom when `a`/`b`/`op` are set) | Times-table mode: factors 1–12, multiplication only. Ignores `a`, `b`, and `op` |
 | `a`      | `1`, `2`, `3`, `4`, `2-3`, `2-4`     | Digit count for the first number |
 | `b`      | same                                 | Digit count for the second number |
 | `op`     | `+`, `-`, `*`, `/` (comma-separated) | Allowed operations (one or more) |
@@ -90,7 +110,7 @@ Base path: `/math/`
 | `layout` | `side`, `column`                     | Side-by-side (`12 + 5 = ?`) or stacked column with answer under the line |
 | `missing`| `y`, `n`                             | Missing-number mode: randomly hide the 1st number, 2nd number, result, or operation (`5 + ? = 12`, `? − 3 = 7`, `5 ? 7 = 12`). With `n`, always ask for the result |
 
-**Defaults** when a param is missing: standard mode (`mode` omitted), `a=1`, `b=1`, `op=+`, `sign=both`, `time=y`, `input=answer`, `layout=side`, `missing=n`.
+**Defaults** when a param is missing: level mode at the saved level (custom mode as soon as `a`, `b`, or `op` is present), `a=1`, `b=1`, `op=+`, `sign=both`, `time=y`, `input=answer`, `layout=side`, `missing=n`.
 
 Digit specs:
 
@@ -107,6 +127,12 @@ Notes:
 - When `mode=times-table`, `a`, `b`, and `op` are ignored; both factors are random integers from 1–12 and the operation is always ×.
 
 ### Example URLs
+
+Level 7, multiple choice, column layout:
+
+```text
+/math/?level=7&time=y&input=multichoice&layout=column
+```
 
 Easy addition (multiple choice):
 

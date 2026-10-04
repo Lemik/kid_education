@@ -190,6 +190,7 @@ body {
 /* display:flex above otherwise overrides the native [hidden] rule */
 .timer-wrap[hidden],
 .wrong-wrap[hidden],
+.level-wrap[hidden],
 .streak-wrap[hidden],
 .typed-answer[hidden],
 .choices[hidden],
@@ -199,6 +200,30 @@ body {
 
 .score.wrong {
   color: var(--error);
+}
+
+.level-progress {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.level-label {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+#levelFields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+#levelFields[hidden] {
+  display: none;
 }
 
 .timer-label,
@@ -590,6 +615,12 @@ body {
 
 .feedback.incorrect {
   color: var(--error);
+}
+
+.feedback.correct.level-up {
+  color: #7c3aed;
+  font-size: 1.35rem;
+  animation: streak-feedback-flicker 0.9s ease-in-out;
 }
 
 /* ---- Streak celebration popups ---- */
