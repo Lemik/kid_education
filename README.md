@@ -57,6 +57,7 @@ The tab bar at the top switches subjects. Each subject is a folder with its own 
 |----------------|----------|----------|
 | Mathematics    | `math/`  | Available |
 | Times Tables   | `times/` | Available |
+| Latin Square   | `latin/` | Available |
 
 To add a new subject later:
 
@@ -186,4 +187,28 @@ Examples:
 ```text
 /times/?level=9&time=y&input=multichoice&layout=column
 /times/?tables=6,7,8&max=12&missing=n&time=y&input=answer&layout=side
+```
+
+## Latin Square
+
+A logic puzzle at `/latin/`: fill the grid so every picture, number, or word appears exactly once in each row and each column. Some squares start filled in; tap a tile below the grid, then tap an empty square to place it (drag and drop also works on desktop). Tap a placed tile to remove it. **Check** highlights squares that repeat in a row or column. When the grid is full and correct, a congratulations sign appears and the **Solved** counter goes up.
+
+### URL settings
+
+Base path: `/latin/`
+
+| Param  | Values                    | Meaning |
+|--------|---------------------------|---------|
+| `type` | `pic`, `num`, `word`      | Pictures (emoji), numbers 1–N, or short words |
+| `size` | `3`, `4`, `5`, `6`        | Grid size (N × N) |
+| `diff` | `easy`, `medium`, `hard`  | How many squares start filled in (easy ≈ 65%, medium ≈ 45%, hard ≈ 30%) |
+| `time` | `y`, `n`                  | Show or hide the elapsed timer per puzzle |
+
+**Defaults:** `type=pic`, `size=4`, `diff=easy`, `time=y`.
+
+Examples:
+
+```text
+/latin/?type=pic&size=4&diff=easy&time=y
+/latin/?type=num&size=6&diff=hard&time=n
 ```

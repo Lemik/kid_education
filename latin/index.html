@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kid Words Practice</title>
+  <title>Kid Latin Square</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -14,14 +14,14 @@
       <a class="tab" href="../times/">Times Tables</a>
       <a class="tab" href="../measure/">Measurements</a>
       <a class="tab" href="../patterns/">Patterns</a>
-      <a class="tab active" href="../words/" aria-current="page">Words</a>
+      <a class="tab" href="../words/">Words</a>
       <a class="tab" href="../unscramble/">Unscramble</a>
       <a class="tab" href="../sentences/">Sentences</a>
       <a class="tab" href="../clock/">Clock</a>
       <a class="tab" href="../money/">Money</a>
       <a class="tab" href="../geography/">Geography</a>
       <a class="tab" href="../match/">Find a Match</a>
-      <a class="tab" href="../latin/">Latin Square</a>
+      <a class="tab active" href="../latin/" aria-current="page">Latin Square</a>
     </nav>
     <header class="top-bar">
       <button type="button" class="nav-toggle" id="navToggle" aria-label="Subjects menu" aria-expanded="false" aria-controls="subjectNav">☰</button>
@@ -32,29 +32,36 @@
       </div>
       <div class="top-bar-spacer"></div>
       <div class="score-wrap">
-        <span class="score-label">Score</span>
+        <span class="score-label">Solved</span>
         <span class="score" id="score" aria-live="polite">0</span>
       </div>
-      <div class="score-wrap wrong-wrap" id="wrongWrap" hidden>
-        <span class="score-label">Wrong</span>
-        <span class="score wrong" id="wrongScore" aria-live="polite">0</span>
+      <div class="match-help">
+        <button type="button" class="match-help-btn" id="helpBtn" aria-label="How to play" aria-expanded="false" aria-controls="latinPrompt">i</button>
+        <p class="match-prompt" id="latinPrompt" hidden>Fill the grid so each picture appears once in every row and column.</p>
       </div>
       <button type="button" class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">
         ⚙
       </button>
     </header>
 
-    <main class="main">
-      <div class="word-display" id="wordDisplay" aria-live="polite">Loading…</div>
-
-      <div class="answer-area" id="answerArea">
-        <div class="typed-answer" id="typedAnswer" hidden>
-          <button type="button" class="btn btn-primary" id="submitBtn">Submit</button>
-        </div>
-      </div>
-
+    <main class="main latin-main">
+      <div class="latin-board" id="latinBoard" role="group" aria-label="Puzzle grid"></div>
+      <div class="latin-palette" id="latinPalette" role="group" aria-label="Pieces to place"></div>
       <p class="feedback" id="feedback" aria-live="assertive"></p>
+      <div class="latin-actions">
+        <button type="button" class="btn btn-secondary" id="newBtn">↺ New puzzle</button>
+        <button type="button" class="btn btn-primary" id="checkBtn">Check</button>
+      </div>
     </main>
+  </div>
+
+  <div class="match-sign" id="latinSign" hidden>
+    <div class="match-sign-card" role="status" aria-live="assertive">
+      <p class="match-sign-emoji" aria-hidden="true">🎉</p>
+      <h2 class="match-sign-title">Congratulations!</h2>
+      <p class="match-sign-detail" id="latinSignDetail"></p>
+      <button type="button" class="btn btn-primary" id="playAgainBtn">Play again</button>
+    </div>
   </div>
 
   <div class="modal-overlay" id="settingsModal" hidden>
@@ -62,57 +69,40 @@
       <h2 id="settingsTitle">Settings</h2>
 
       <form id="settingsForm" class="settings-form">
-        <label class="field">
-          <span>Word length</span>
-          <select name="len" id="settingLen">
-            <option value="3">3 letters</option>
-            <option value="4">4 letters</option>
-            <option value="5">5 letters</option>
-            <option value="6">6 letters</option>
-            <option value="3-5">3–5 letters</option>
-            <option value="4-6">4–6 letters</option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>Letters to hide</span>
-          <select name="hide" id="settingHide">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="auto">Auto (about half)</option>
-          </select>
-        </label>
-
         <fieldset class="field">
-          <legend>Show first letter</legend>
+          <legend>Show</legend>
           <div class="radio-row">
-            <label><input type="radio" name="first" value="y" /> Yes</label>
-            <label><input type="radio" name="first" value="n" /> No</label>
+            <label><input type="radio" name="type" value="pic" /> Pictures</label>
+            <label><input type="radio" name="type" value="num" /> Numbers</label>
+            <label><input type="radio" name="type" value="word" /> Words</label>
           </div>
         </fieldset>
 
+        <label class="field">
+          <span>Square size</span>
+          <select name="size" id="settingSize">
+            <option value="3">3 × 3</option>
+            <option value="4">4 × 4</option>
+            <option value="5">5 × 5</option>
+            <option value="6">6 × 6</option>
+          </select>
+        </label>
+
         <fieldset class="field">
-          <legend>Show results</legend>
+          <legend>Difficulty</legend>
           <div class="radio-row">
-            <label><input type="radio" name="sign" value="positive" /> Positive</label>
-            <label><input type="radio" name="sign" value="both" /> Both</label>
+            <label><input type="radio" name="diff" value="easy" /> Easy</label>
+            <label><input type="radio" name="diff" value="medium" /> Medium</label>
+            <label><input type="radio" name="diff" value="hard" /> Hard</label>
           </div>
+          <p class="field-hint">Easy starts with most squares filled in. Hard leaves most of them empty.</p>
         </fieldset>
 
         <fieldset class="field">
-          <legend>Time</legend>
+          <legend>Timer</legend>
           <div class="radio-row">
             <label><input type="radio" name="time" value="y" /> Yes</label>
             <label><input type="radio" name="time" value="n" /> No</label>
-          </div>
-        </fieldset>
-
-        <fieldset class="field">
-          <legend>Answer mode</legend>
-          <div class="radio-row">
-            <label><input type="radio" name="input" value="answer" /> Type letters</label>
-            <label><input type="radio" name="input" value="multichoice" /> Multiple choice</label>
           </div>
         </fieldset>
 
@@ -129,6 +119,6 @@
   <div class="nav-backdrop" id="navBackdrop" hidden></div>
 
   <script type="module" src="../js/nav.js"></script>
-  <script type="module" src="../js/words-app.js"></script>
+  <script type="module" src="../js/latin-app.js"></script>
 </body>
 </html>
