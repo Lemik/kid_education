@@ -1895,13 +1895,233 @@ body.modal-open {
   75% { transform: translateX(5px); }
 }
 
+/* ---------- Subset ---------- */
+
+.game-card-subset { background: #ffe4cc; }
+
+.subset-main {
+  justify-content: flex-start;
+  gap: 0.6rem;
+  padding-top: 1.25rem;
+}
+
+.subset-progress {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.subset-hint {
+  margin: 0;
+  font-size: clamp(1.1rem, 3.8vw, 1.4rem);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.subset-levels {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.subset-level {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.subset-level[hidden],
+.subset-group[hidden] {
+  display: none;
+}
+
+.subset-level + .subset-level::before {
+  content: "⬇";
+  flex-basis: 100%;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.subset-group {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 2px dashed var(--border);
+  border-radius: calc(var(--radius) + 4px);
+}
+
+.subset-group > .subset-slot {
+  flex: 0 1 calc((100% - 1.5rem) / 3);
+  max-width: 220px;
+}
+
+@media (max-width: 520px) {
+  .subset-group > .subset-slot {
+    flex-basis: calc((100% - 0.75rem) / 2);
+  }
+}
+
+.subset-group-top {
+  flex: 0 1 300px;
+  border: none;
+  padding: 0;
+}
+
+.subset-group-top > .subset-slot {
+  flex: 1 1 100%;
+  max-width: none;
+}
+
+.subset-slot:empty {
+  display: none;
+}
+
+.subset-card.is-new {
+  animation: subset-pop-in 0.45s ease-out;
+}
+
+@keyframes subset-pop-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.feedback.hint {
+  color: var(--primary-dark);
+}
+
+.subset-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.45rem 0.4rem 0.35rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: #ffffff;
+  transform-origin: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.subset-card.is-active {
+  border-color: var(--obj);
+}
+
+.subset-card.is-solved {
+  background: var(--obj-light);
+  border-color: var(--obj);
+}
+
+.subset-card-top.is-active {
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.3);
+}
+
+.subset-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.subset-region {
+  fill: var(--part, var(--obj-light));
+  stroke: var(--obj);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: fill 0.35s ease, fill-opacity 0.35s ease;
+}
+
+.subset-region[role="button"] {
+  cursor: pointer;
+}
+
+.subset-region[role="button"]:hover,
+.subset-region[role="button"]:focus-visible {
+  fill: #ffffff;
+  outline: none;
+}
+
+.subset-region[role="button"]:focus-visible {
+  stroke-width: 4;
+}
+
+.subset-region.wrong {
+  fill: var(--error-bg);
+  stroke: var(--error);
+  animation: flag-shake 0.35s ease-in-out;
+}
+
+.subset-card.is-solved .subset-region {
+  fill: var(--obj);
+  fill-opacity: 0.25;
+}
+
+.subset-card.is-solved .subset-region.picked {
+  fill-opacity: 1;
+  stroke: var(--text);
+  stroke-width: 3;
+}
+
+.subset-card.is-solved .subset-region.operand {
+  fill: #ffffff;
+  fill-opacity: 1;
+  stroke: var(--text);
+  stroke-width: 3;
+  stroke-dasharray: 7 5;
+}
+
+.subset-num {
+  fill: var(--text);
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.subset-card.is-solved .subset-num {
+  opacity: 0.45;
+}
+
+.subset-card.is-solved .subset-num.operand,
+.subset-card.is-solved .subset-num.picked {
+  opacity: 1;
+}
+
+.subset-card.is-solved .subset-num.picked {
+  fill: #ffffff;
+  stroke: var(--text);
+  stroke-width: 3;
+  paint-order: stroke;
+}
+
+.subset-caption {
+  margin: 0;
+  min-height: 1.5em;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .match-card-inner,
   .game-card {
     transition: none;
   }
 
-  .flag-match-item.wrong-flash {
+  .flag-match-item.wrong-flash,
+  .subset-region.wrong,
+  .subset-card.is-new {
     animation: none;
   }
 }

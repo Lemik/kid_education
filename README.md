@@ -19,7 +19,8 @@ kid_education/
 │   ├── generator.js    # Question generation
 │   ├── levels.js       # Math level ladder (one spec per level)
 │   ├── storage.js      # sessionStorage (score, wrong, timer) + localStorage (level progress)
-│   └── times-*.js      # Times Tables game (app, settings, storage, levels)
+│   ├── times-*.js      # Times Tables game (app, settings, storage, levels)
+│   └── subset-*.js     # Subset game (app, settings, storage, generator)
 └── README.md
 ```
 
@@ -57,6 +58,7 @@ The tab bar at the top switches subjects. Each subject is a folder with its own 
 |----------------|----------|----------|
 | Mathematics    | `math/`  | Available |
 | Times Tables   | `times/` | Available |
+| Subset         | `subset/`| Available |
 | Latin Square   | `latin/` | Available |
 | Flags          | `flags/` | Available |
 
@@ -188,6 +190,35 @@ Examples:
 ```text
 /times/?level=9&time=y&input=multichoice&layout=column
 /times/?tables=6,7,8&max=12&missing=n&time=y&input=answer&layout=side
+```
+
+## Subset
+
+A recursive number-hunting game at `/subset/`. Pick the number of **levels** (1 or 2) and one or more actions (`+`, `−`, `×`, `÷`).
+
+- Every object is a shape split into **5 parts**, each with a number. In each object, one number can be made from two other numbers with the chosen actions (e.g. `8 = 3 + 5`). Tap it: the answer part fills in, the two numbers used get a dashed outline, and the equation appears under the object. A wrong tap shakes and adds 1 to **Wrong**.
+- Objects come in groups of 5. When all 5 objects of a group are solved, their **5 answers become the numbers of a new object** below them (each part tinted with the color of the object it came from).
+- **1 level:** 5 objects → 1 final object (6 in total). **2 levels:** 25 objects → 5 → 1 (31 in total).
+- With `−` or `÷` another number can also be true (if `8 = 13 − 5`, then also `5 = 13 − 8`). Tapping it shows "That's true too… But find another one." and does **not** count as wrong; only the answer that the next object needs is accepted. On the final object any true number wins.
+- **Score** goes up by 1 for every object solved. With only `×` or only `÷` at 2 levels the numbers get large (up to a few thousand).
+
+### URL settings
+
+Base path: `/subset/`
+
+| Param  | Values                               | Meaning |
+|--------|--------------------------------------|---------|
+| `levels` | `1`, `2`                           | `1` = 5 → 1, `2` = 25 → 5 → 1 |
+| `op`   | `+`, `-`, `*`, `/` (comma-separated) | Allowed actions (one or more). Encode `+` as `%2B` |
+| `time` | `y`, `n`                             | Show or hide the elapsed session timer |
+
+**Defaults:** `levels=1`, `op=+`, `time=y`.
+
+Examples:
+
+```text
+/subset/?levels=1&op=%2B&time=y
+/subset/?levels=2&op=%2B,-,*,/&time=n
 ```
 
 ## Latin Square
