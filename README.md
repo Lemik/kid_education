@@ -58,6 +58,7 @@ The tab bar at the top switches subjects. Each subject is a folder with its own 
 | Mathematics    | `math/`  | Available |
 | Times Tables   | `times/` | Available |
 | Latin Square   | `latin/` | Available |
+| Flags          | `flags/` | Available |
 
 To add a new subject later:
 
@@ -225,4 +226,35 @@ Examples:
 /latin/?level=6&time=y
 /latin/?type=pic&size=4&diff=easy&time=y
 /latin/?type=num&size=6&diff=hard&time=n
+```
+
+## Flags
+
+A flag game at `/flags/`. Flags are emoji built from each country's two-letter ISO code (the list lives in `data/flags.json`). On Windows, browsers show emoji flags as letter pairs (e.g. `FR`) instead of pictures.
+
+- **Guess the country:** a big flag is shown — pick the country from 4 names.
+- **Guess the flag:** a country name is shown — pick its flag from 4 flags.
+- **Match:** flags on the left, country names on the right (both shuffled). Tap a flag and then its country (either order). Each correct pair turns green and adds 1 to **Score**; a wrong pair shakes and adds 1 to **Wrong**. When every pair is matched, a new board is dealt.
+- **Mixed:** randomly switches between guessing the country and guessing the flag.
+
+Wrong choices come from the same continent first, so they look a bit alike.
+
+### URL settings
+
+Base path: `/flags/`
+
+| Param    | Values                                                            | Meaning |
+|----------|-------------------------------------------------------------------|---------|
+| `mode`   | `flag`, `name`, `match`, `mixed`                                  | Guess the country, guess the flag, match board, or mixed |
+| `region` | `popular`, `world`, `europe`, `asia`, `africa`, `americas`, `oceania` | Which countries to use (`popular` ≈ 28 well-known countries) |
+| `pairs`  | `4`, `5`, `6`, `8`                                                | Match mode: pairs on each board (capped at the number of countries in the region) |
+| `time`   | `y`, `n`                                                          | Show or hide the elapsed session timer |
+
+**Defaults:** `mode=flag`, `region=popular`, `pairs=5`, `time=y`.
+
+Examples:
+
+```text
+/flags/?mode=name&region=europe&time=y
+/flags/?mode=match&region=world&pairs=8&time=n
 ```
