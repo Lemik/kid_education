@@ -5,8 +5,17 @@ import {
   applySettingsToForm,
   promptText,
   thingName,
+  isLevelMode,
+  buildLevelSettings,
 } from './latin-settings.js';
 import { generatePuzzle, findConflicts, isComplete } from './latin-generator.js';
+import { LATIN_LEVELS, LATIN_LEVEL_UP_TARGET } from './latin-levels.js';
+import {
+  getSavedLevel,
+  setSavedLevel,
+  getLevelSolved,
+  setLevelSolved,
+} from './latin-storage.js';
 import { commitSettingsChange } from './apply-settings.js';
 
 const els = {
@@ -29,9 +38,17 @@ const els = {
   settingsForm: document.getElementById('settingsForm'),
   settingsError: document.getElementById('settingsError'),
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+  levelFields: document.getElementById('levelFields'),
+  levelSelect: document.getElementById('settingLevel'),
+  levelHint: document.getElementById('levelHint'),
+  customFields: document.getElementById('customFields'),
+  levelWrap: document.getElementById('levelWrap'),
+  levelValue: document.getElementById('levelValue'),
+  levelProgress: document.getElementById('levelProgress'),
+  levelLabel: document.getElementById('levelLabel'),
 };
 
-let settings = parseSettingsFromUrl();
+let settings = parseSettingsFromUrl(window.location.search, getSavedLevel());
 let puzzle = null;
 let selectedSymbol = null;
 let solvedCount = 0;
@@ -72,6 +89,67 @@ function startTimer() {
 
 function updateSolved() {
   els.score.textContent = String(solvedCount);
+}
+
+function updateLevelDisplay() {
+  const levelMode = isLevelMode(settings);
+  els.levelWrap.hidden = !levelMode;
+  els.levelLabel.hidden = !levelMode;
+  if (!levelMode) return;
+
+  els.levelLabel.textContent = settings.label;
+  els.levelValue.textContent = String(settings.level);
+  els.levelProgress.textContent = `${getLevelSolved()}/${LATIN_LEVEL_UP_TARGET}`;
+  els.levelWrap.title = `Level ${settings.level}: ${settings.label}`;
+}
+
+/** Make `level` the child's current level; switching levels restarts the progress. */
+function saveCurrentLevel(level) {
+  if (getSavedLevel() === level) return;
+  setSavedLevel(level);
+  setLevelSolved(0);
+}
+
+/**
+ * Count a solved puzzle toward the next level.
+ * Returns a celebration message when the level changes (or is mastered).
+ */
+function recordLevelSolved() {
+  if (!isLevelMode(settings)) return null;
+
+  const solved = getLevelSolved() + 1;
+  if (solved < LATIN_LEVEL_UP_TARGET) {
+    setLevelSolved(solved);
+    return null;
+  }
+
+  setLevelSolved(0);
+  if (settings.level >= LATIN_LEVELS.length) {
+    return `You mastered the top level — ${settings.label}!`;
+  }
+
+  settings = buildLevelSettings(settings.level + 1, settings.time);
+  setSavedLevel(settings.level);
+  history.replaceState(null, '', settingsToUrl(settings));
+  return `Level up! Level ${settings.level} — ${settings.label}`;
+}
+
+function populateLevelSelect() {
+  els.levelSelect.replaceChildren(
+    ...LATIN_LEVELS.map((level, index) => {
+      const option = document.createElement('option');
+      option.value = String(index + 1);
+      option.textContent = `${index + 1} — ${level.label}`;
+      return option;
+    }),
+  );
+  els.levelHint.textContent = `Moves up a level after ${LATIN_LEVEL_UP_TARGET} solved puzzles.`;
+}
+
+function updateModeFields() {
+  const levelMode = els.settingsForm.querySelector('input[name="mode"]:checked')?.value === 'level';
+  els.levelFields.hidden = !levelMode;
+  els.customFields.hidden = levelMode;
 }
 
 function symbolNode(symbolIndex) {
@@ -162,7 +240,10 @@ function win() {
   const timePart = settings.time === 'y' && startedAt != null
     ? ` in ${formatElapsed(Date.now() - startedAt)}`
     : '';
-  els.signDetail.textContent = `You solved the ${puzzle.size} × ${puzzle.size} square${timePart}.`;
+  const solvedText = `You solved the ${puzzle.size} × ${puzzle.size} square${timePart}.`;
+  const levelMessage = recordLevelSolved();
+  updateLevelDisplay();
+  els.signDetail.textContent = levelMessage ? `${solvedText} ${levelMessage}` : solvedText;
   els.sign.hidden = false;
   els.playAgainBtn.focus();
 }
@@ -306,6 +387,7 @@ function startRound() {
   els.prompt.textContent = promptText(settings);
   setFeedback('', null);
   updateSolved();
+  updateLevelDisplay();
   renderBoard();
   renderPalette();
   startTimer();
@@ -313,7 +395,8 @@ function startRound() {
 
 function openSettingsModal() {
   setHelpOpen(false);
-  applySettingsToForm(els.settingsForm, settings);
+  applySettingsToForm(els.settingsForm, settings, getSavedLevel());
+  updateModeFields();
   els.settingsError.hidden = true;
   els.settingsError.textContent = '';
   els.settingsModal.hidden = false;
@@ -336,6 +419,7 @@ function onSettingsSubmit(event) {
 
   commitSettingsChange(next, settingsToUrl, () => {});
   settings = next;
+  if (isLevelMode(settings)) saveCurrentLevel(settings.level);
   solvedCount = 0;
   startRound();
   closeSettingsModal();
@@ -372,10 +456,15 @@ function bindEvents() {
   });
 
   els.settingsForm.addEventListener('submit', onSettingsSubmit);
+  els.settingsForm.addEventListener('change', updateModeFields);
 }
 
 function init() {
-  settings = parseSettingsFromUrl();
+  populateLevelSelect();
+  if (isLevelMode(settings)) {
+    saveCurrentLevel(settings.level);
+    history.replaceState(null, '', settingsToUrl(settings));
+  }
   bindEvents();
   startRound();
 }

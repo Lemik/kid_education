@@ -1,3 +1,6 @@
+import { clampLevel, getLevel } from './levels.js';
+import { LATIN_LEVELS } from './latin-levels.js';
+
 const TYPES = new Set(['pic', 'num', 'word']);
 const SIZES = new Set([3, 4, 5, 6]);
 const DIFFS = new Set(['easy', 'medium', 'hard']);
@@ -10,23 +13,58 @@ export const DEFAULT_SETTINGS = Object.freeze({
   time: 'y',
 });
 
-/**
- * Parse settings from the current URL query string.
- * Invalid values fall back to defaults.
- */
-export function parseSettingsFromUrl(search = window.location.search) {
-  const params = new URLSearchParams(search);
-  const type = params.get('type');
-  const size = Number(params.get('size'));
-  const diff = params.get('diff');
-  const time = params.get('time');
+export function isLevelMode(settings) {
+  return settings?.mode === 'level';
+}
 
+function timePref(time) {
+  return TIMES.has(time) ? time : DEFAULT_SETTINGS.time;
+}
+
+export function buildLevelSettings(level, time = DEFAULT_SETTINGS.time) {
+  const n = clampLevel(level, LATIN_LEVELS);
+  const spec = getLevel(n, LATIN_LEVELS);
   return {
+    mode: 'level',
+    level: n,
+    label: spec.label,
+    type: spec.type,
+    size: spec.size,
+    diff: spec.diff,
+    time: timePref(time),
+  };
+}
+
+export function buildCustomSettings({ type, size, diff, time }) {
+  return {
+    mode: 'custom',
     type: TYPES.has(type) ? type : DEFAULT_SETTINGS.type,
     size: SIZES.has(size) ? size : DEFAULT_SETTINGS.size,
     diff: DIFFS.has(diff) ? diff : DEFAULT_SETTINGS.diff,
-    time: TIMES.has(time) ? time : DEFAULT_SETTINGS.time,
+    time: timePref(time),
   };
+}
+
+/**
+ * Parse settings from the URL. Custom mode when `type`, `size`, or `diff` is
+ * present; otherwise level mode at `level` (or `savedLevel`).
+ */
+export function parseSettingsFromUrl(search = window.location.search, savedLevel = 1) {
+  const params = new URLSearchParams(search);
+  const time = params.get('time');
+  const custom = params.has('type') || params.has('size') || params.has('diff');
+
+  if (params.has('level') || !custom) {
+    const level = params.has('level') ? params.get('level') : savedLevel;
+    return buildLevelSettings(level, time);
+  }
+
+  return buildCustomSettings({
+    type: params.get('type'),
+    size: Number(params.get('size')),
+    diff: params.get('diff'),
+    time,
+  });
 }
 
 /**
@@ -34,9 +72,13 @@ export function parseSettingsFromUrl(search = window.location.search) {
  */
 export function settingsToQuery(settings) {
   const params = new URLSearchParams();
-  params.set('type', settings.type);
-  params.set('size', String(settings.size));
-  params.set('diff', settings.diff);
+  if (isLevelMode(settings)) {
+    params.set('level', String(settings.level));
+  } else {
+    params.set('type', settings.type);
+    params.set('size', String(settings.size));
+    params.set('diff', settings.diff);
+  }
   params.set('time', settings.time);
   return params.toString();
 }
@@ -56,22 +98,38 @@ export function settingsToUrl(settings, base = window.location.href) {
  */
 export function readSettingsFromForm(form) {
   const data = new FormData(form);
-  const type = String(data.get('type') ?? '');
-  const size = Number(data.get('size'));
-  const diff = String(data.get('diff') ?? '');
+  const mode = String(data.get('mode') ?? '');
   const time = String(data.get('time') ?? '');
 
-  if (!TYPES.has(type) || !SIZES.has(size) || !DIFFS.has(diff) || !TIMES.has(time)) {
+  if (!TIMES.has(time)) {
     return { settings: null, error: 'Please fill in all settings.' };
   }
 
-  return { settings: { type, size, diff, time }, error: null };
+  if (mode === 'level') {
+    return { settings: buildLevelSettings(data.get('level'), time), error: null };
+  }
+
+  const type = String(data.get('type') ?? '');
+  const size = Number(data.get('size'));
+  const diff = String(data.get('diff') ?? '');
+
+  if (!TYPES.has(type) || !SIZES.has(size) || !DIFFS.has(diff)) {
+    return { settings: null, error: 'Please fill in all settings.' };
+  }
+
+  return { settings: buildCustomSettings({ type, size, diff, time }), error: null };
 }
 
 /**
- * Populate the settings modal form from a settings object.
+ * Populate the settings modal form. Custom fields show the current puzzle's
+ * type/size/difficulty; `savedLevel` preselects the level dropdown in custom mode.
  */
-export function applySettingsToForm(form, settings) {
+export function applySettingsToForm(form, settings, savedLevel = 1) {
+  const modeInput = form.querySelector(`input[name="mode"][value="${settings.mode}"]`);
+  if (modeInput) modeInput.checked = true;
+
+  form.level.value = String(clampLevel(settings.level ?? savedLevel, LATIN_LEVELS));
+
   const typeInput = form.querySelector(`input[name="type"][value="${settings.type}"]`);
   if (typeInput) typeInput.checked = true;
 

@@ -31,6 +31,11 @@
         <span class="timer" id="timer" aria-live="polite">00:00</span>
       </div>
       <div class="top-bar-spacer"></div>
+      <div class="score-wrap level-wrap" id="levelWrap" hidden>
+        <span class="score-label">Level</span>
+        <span class="score" id="levelValue">1</span>
+        <span class="level-progress" id="levelProgress" aria-live="polite">0/3</span>
+      </div>
       <div class="score-wrap">
         <span class="score-label">Solved</span>
         <span class="score" id="score" aria-live="polite">0</span>
@@ -45,6 +50,7 @@
     </header>
 
     <main class="main latin-main">
+      <p class="level-label" id="levelLabel"></p>
       <div class="latin-board" id="latinBoard" role="group" aria-label="Puzzle grid"></div>
       <div class="latin-palette" id="latinPalette" role="group" aria-label="Pieces to place"></div>
       <p class="feedback" id="feedback" aria-live="assertive"></p>
@@ -70,33 +76,51 @@
 
       <form id="settingsForm" class="settings-form">
         <fieldset class="field">
-          <legend>Show</legend>
+          <legend>Practice mode</legend>
           <div class="radio-row">
-            <label><input type="radio" name="type" value="pic" /> Pictures</label>
-            <label><input type="radio" name="type" value="num" /> Numbers</label>
-            <label><input type="radio" name="type" value="word" /> Words</label>
+            <label><input type="radio" name="mode" value="level" /> Level</label>
+            <label><input type="radio" name="mode" value="custom" /> Custom</label>
           </div>
         </fieldset>
 
-        <label class="field">
-          <span>Square size</span>
-          <select name="size" id="settingSize">
-            <option value="3">3 × 3</option>
-            <option value="4">4 × 4</option>
-            <option value="5">5 × 5</option>
-            <option value="6">6 × 6</option>
-          </select>
-        </label>
+        <div id="levelFields" hidden>
+          <label class="field">
+            <span>Level</span>
+            <select name="level" id="settingLevel"></select>
+          </label>
+          <p class="field-hint" id="levelHint"></p>
+        </div>
 
-        <fieldset class="field">
-          <legend>Difficulty</legend>
-          <div class="radio-row">
-            <label><input type="radio" name="diff" value="easy" /> Easy</label>
-            <label><input type="radio" name="diff" value="medium" /> Medium</label>
-            <label><input type="radio" name="diff" value="hard" /> Hard</label>
-          </div>
-          <p class="field-hint">Easy starts with most squares filled in. Hard leaves most of them empty.</p>
-        </fieldset>
+        <div id="customFields" class="settings-form" hidden>
+          <fieldset class="field">
+            <legend>Show</legend>
+            <div class="radio-row">
+              <label><input type="radio" name="type" value="pic" /> Pictures</label>
+              <label><input type="radio" name="type" value="num" /> Numbers</label>
+              <label><input type="radio" name="type" value="word" /> Words</label>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span>Square size</span>
+            <select name="size" id="settingSize">
+              <option value="3">3 × 3</option>
+              <option value="4">4 × 4</option>
+              <option value="5">5 × 5</option>
+              <option value="6">6 × 6</option>
+            </select>
+          </label>
+
+          <fieldset class="field">
+            <legend>Difficulty</legend>
+            <div class="radio-row">
+              <label><input type="radio" name="diff" value="easy" /> Easy</label>
+              <label><input type="radio" name="diff" value="medium" /> Medium</label>
+              <label><input type="radio" name="diff" value="hard" /> Hard</label>
+            </div>
+            <p class="field-hint">Easy starts with most squares filled in. Hard leaves most of them empty.</p>
+          </fieldset>
+        </div>
 
         <fieldset class="field">
           <legend>Timer</legend>

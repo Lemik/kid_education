@@ -193,22 +193,36 @@ Examples:
 
 A logic puzzle at `/latin/`: fill the grid so every picture, number, or word appears exactly once in each row and each column. Some squares start filled in; tap a tile below the grid, then tap an empty square to place it (drag and drop also works on desktop). Tap a placed tile to remove it. **Check** highlights squares that repeat in a row or column. When the grid is full and correct, a congratulations sign appears and the **Solved** counter goes up.
 
+### Levels
+
+Level mode is the default. The ladder lives in `js/latin-levels.js` (15 levels): five 3 × 3 levels, four 4 × 4, three 5 × 5, and three 6 × 6, getting harder within each size and rotating pictures, numbers, and words.
+
+- **Auto-increase:** after 3 solved puzzles at a level (`LATIN_LEVEL_UP_TARGET`), the level goes up and the win sign says so. The top bar shows the level and progress (e.g. `2/3`), and the level name appears above the grid.
+- **Resume:** the level and progress are saved in `localStorage` (`kidLatin.*` keys), so opening `/latin/` again continues where the child left off.
+- **Pick a level:** in Settings choose **Level** and any level from the list. Changing the level restarts the progress count.
+
+### Custom mode
+
+In Settings choose **Custom** to pick pictures, numbers, or words, the square size, and the difficulty yourself. Custom puzzles don't count toward level progress.
+
 ### URL settings
 
 Base path: `/latin/`
 
-| Param  | Values                    | Meaning |
-|--------|---------------------------|---------|
-| `type` | `pic`, `num`, `word`      | Pictures (emoji), numbers 1–N, or short words |
-| `size` | `3`, `4`, `5`, `6`        | Grid size (N × N) |
-| `diff` | `easy`, `medium`, `hard`  | How many squares start filled in (easy ≈ 65%, medium ≈ 45%, hard ≈ 30%) |
-| `time` | `y`, `n`                  | Show or hide the elapsed timer per puzzle |
+| Param   | Values                    | Meaning |
+|---------|---------------------------|---------|
+| `level` | `1`–`15`                  | Level mode at this level. Without `level`, `type`, `size`, or `diff`, the saved level is resumed |
+| `type`  | `pic`, `num`, `word`      | Custom mode: pictures (emoji), numbers 1–N, or short words |
+| `size`  | `3`, `4`, `5`, `6`        | Custom mode: grid size (N × N) |
+| `diff`  | `easy`, `medium`, `hard`  | Custom mode: how many squares start filled in (easy ≈ 65%, medium ≈ 45%, hard ≈ 30%) |
+| `time`  | `y`, `n`                  | Show or hide the elapsed timer per puzzle |
 
-**Defaults:** `type=pic`, `size=4`, `diff=easy`, `time=y`.
+**Defaults:** level mode at the saved level (custom mode as soon as `type`, `size`, or `diff` is present). Missing custom params fall back to `type=pic`, `size=4`, `diff=easy`; `time=y`.
 
 Examples:
 
 ```text
+/latin/?level=6&time=y
 /latin/?type=pic&size=4&diff=easy&time=y
 /latin/?type=num&size=6&diff=hard&time=n
 ```
