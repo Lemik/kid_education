@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kid Subset Game</title>
+  <title>Kid Find a Llama</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -12,7 +12,7 @@
       <a class="tab tab-home" href="../">Home</a>
       <a class="tab" href="../math/">Mathematics</a>
       <a class="tab" href="../times/">Times Tables</a>
-      <a class="tab active" href="../subset/" aria-current="page">Subset</a>
+      <a class="tab" href="../subset/">Subset</a>
       <a class="tab" href="../measure/">Measurements</a>
       <a class="tab" href="../patterns/">Patterns</a>
       <a class="tab" href="../words/">Words</a>
@@ -24,7 +24,7 @@
       <a class="tab" href="../flags/">Flags</a>
       <a class="tab" href="../match/">Find a Match</a>
       <a class="tab" href="../latin/">Latin Square</a>
-      <a class="tab" href="../llama/">Find a Llama</a>
+      <a class="tab active" href="../llama/" aria-current="page">Find a Llama</a>
     </nav>
     <header class="top-bar">
       <button type="button" class="nav-toggle" id="navToggle" aria-label="Subjects menu" aria-expanded="false" aria-controls="subjectNav">☰</button>
@@ -34,34 +34,41 @@
         <span class="timer" id="timer" aria-live="polite">00:00</span>
       </div>
       <div class="top-bar-spacer"></div>
-      <div class="score-wrap">
-        <span class="score-label">Score</span>
-        <span class="score" id="score" aria-live="polite">0</span>
+      <div class="score-wrap level-wrap" id="levelWrap" hidden>
+        <span class="score-label">Level</span>
+        <span class="score" id="levelValue">1</span>
+        <span class="level-progress" id="levelProgress" aria-live="polite">0/3</span>
       </div>
-      <div class="score-wrap wrong-wrap" id="wrongWrap">
-        <span class="score-label">Wrong</span>
-        <span class="score wrong" id="wrongScore" aria-live="polite">0</span>
+      <div class="score-wrap">
+        <span class="score-label">Found</span>
+        <span class="score" id="found" aria-live="polite">0/4</span>
+      </div>
+      <div class="match-help">
+        <button type="button" class="match-help-btn" id="helpBtn" aria-label="How to play" aria-expanded="false" aria-controls="llamaPrompt">i</button>
+        <p class="match-prompt" id="llamaPrompt" hidden></p>
       </div>
       <button type="button" class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">
         ⚙
       </button>
     </header>
 
-    <main class="main subset-main">
-      <p class="subset-progress" id="progress"></p>
-      <p class="subset-hint" id="hint">Loading…</p>
-
+    <main class="main llama-main">
+      <p class="level-label" id="levelLabel"></p>
+      <p class="llama-hint">Tap once for <strong>X</strong>. Double-tap to find a 🦙.</p>
+      <p class="llama-lives" id="lives" aria-live="polite"></p>
+      <div class="llama-board" id="llamaBoard" role="group" aria-label="Llama field"></div>
       <p class="feedback" id="feedback" aria-live="assertive"></p>
-
-      <div class="subset-levels" id="levelsArea"></div>
+      <div class="latin-actions">
+        <button type="button" class="btn btn-secondary" id="newBtn">↺ New board</button>
+      </div>
     </main>
   </div>
 
-  <div class="match-sign" id="winSign" hidden>
+  <div class="match-sign" id="llamaSign" hidden>
     <div class="match-sign-card" role="status" aria-live="assertive">
       <p class="match-sign-emoji" aria-hidden="true">🎉</p>
       <h2 class="match-sign-title">Congratulations!</h2>
-      <p class="match-sign-detail" id="winDetail"></p>
+      <p class="match-sign-detail" id="llamaSignDetail"></p>
       <button type="button" class="btn btn-primary" id="playAgainBtn">Play again</button>
     </div>
   </div>
@@ -72,26 +79,45 @@
 
       <form id="settingsForm" class="settings-form">
         <fieldset class="field">
-          <legend>Levels</legend>
+          <legend>Practice mode</legend>
           <div class="radio-row">
-            <label><input type="radio" name="levels" value="1" /> 1 (5 → 1)</label>
-            <label><input type="radio" name="levels" value="2" /> 2 (25 → 5 → 1)</label>
-          </div>
-          <p class="field-hint">Every 5 answers become the numbers of a new object.</p>
-        </fieldset>
-
-        <fieldset class="field">
-          <legend>Actions</legend>
-          <div class="checkbox-row">
-            <label><input type="checkbox" name="op" value="+" /> +</label>
-            <label><input type="checkbox" name="op" value="-" /> −</label>
-            <label><input type="checkbox" name="op" value="*" /> ×</label>
-            <label><input type="checkbox" name="op" value="/" /> ÷</label>
+            <label><input type="radio" name="mode" value="level" /> Level</label>
+            <label><input type="radio" name="mode" value="custom" /> Custom</label>
           </div>
         </fieldset>
 
+        <div id="levelFields" hidden>
+          <label class="field">
+            <span>Level</span>
+            <select name="level" id="settingLevel"></select>
+          </label>
+          <p class="field-hint" id="levelHint"></p>
+        </div>
+
+        <div id="customFields" class="settings-form" hidden>
+          <label class="field">
+            <span>Field size</span>
+            <select name="size" id="settingSize">
+              <option value="4">4 × 4</option>
+              <option value="5">5 × 5</option>
+              <option value="6">6 × 6</option>
+              <option value="7">7 × 7</option>
+              <option value="8">8 × 8</option>
+            </select>
+          </label>
+
+          <fieldset class="field">
+            <legend>Colors</legend>
+            <div class="radio-row">
+              <label><input type="radio" name="shape" value="compact" /> Simple</label>
+              <label><input type="radio" name="shape" value="twisty" /> Twisty</label>
+            </div>
+            <p class="field-hint">Simple colors are round blobs. Twisty colors snake around the field.</p>
+          </fieldset>
+        </div>
+
         <fieldset class="field">
-          <legend>Time</legend>
+          <legend>Timer</legend>
           <div class="radio-row">
             <label><input type="radio" name="time" value="y" /> Yes</label>
             <label><input type="radio" name="time" value="n" /> No</label>
@@ -111,6 +137,6 @@
   <div class="nav-backdrop" id="navBackdrop" hidden></div>
 
   <script type="module" src="../js/nav.js"></script>
-  <script type="module" src="../js/subset-app.js"></script>
+  <script type="module" src="../js/llama-app.js"></script>
 </body>
 </html>

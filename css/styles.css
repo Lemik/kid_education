@@ -1762,6 +1762,123 @@ body.modal-open {
   gap: 0.75rem;
 }
 
+/* ---------- Find a Llama ---------- */
+
+.app:has(.llama-main) {
+  max-width: 900px;
+}
+
+.llama-main {
+  justify-content: flex-start;
+  gap: 0.9rem;
+}
+
+.llama-hint {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.llama-lives {
+  margin: 0;
+  text-align: center;
+  font-size: 1.6rem;
+  letter-spacing: 0.15em;
+  line-height: 1;
+}
+
+.llama-board {
+  --llama-size: 5;
+  display: grid;
+  grid-template-columns: repeat(var(--llama-size), minmax(0, 1fr));
+  width: min(100%, calc(var(--llama-size) * 4.5rem), 34rem);
+  margin: 0 auto;
+  border: 3px solid #1f2937;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(26, 39, 68, 0.12);
+}
+
+.llama-cell {
+  --llama-color: #e5e7eb;
+  --edge: 3px solid #1f2937;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0.5px solid rgba(31, 41, 55, 0.25);
+  border-radius: 0;
+  background: var(--llama-color);
+  color: #374151;
+  cursor: pointer;
+  container-type: inline-size;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.llama-cell.edge-top { border-top: var(--edge); }
+.llama-cell.edge-bottom { border-bottom: var(--edge); }
+.llama-cell.edge-left { border-left: var(--edge); }
+.llama-cell.edge-right { border-right: var(--edge); }
+
+.llama-cell:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: -4px;
+}
+
+.llama-cell:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.llama-mark {
+  font-size: 1.5rem;
+  font-size: 56cqi;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.llama-cell.is-x .llama-mark {
+  font-size: 40cqi;
+  font-weight: 800;
+  color: rgba(31, 41, 55, 0.55);
+}
+
+.llama-cell.is-found {
+  box-shadow: inset 0 0 0 4px rgba(22, 163, 74, 0.85);
+}
+
+.llama-cell.is-miss {
+  background-image: repeating-linear-gradient(45deg, rgba(220, 38, 38, 0.18) 0 6px, transparent 6px 12px);
+}
+
+.llama-cell.is-miss .llama-mark {
+  font-weight: 900;
+  color: var(--error);
+}
+
+.llama-cell.is-revealed {
+  box-shadow: inset 0 0 0 3px rgba(31, 41, 55, 0.45);
+}
+
+.llama-cell.is-revealed .llama-mark {
+  opacity: 0.75;
+}
+
+.llama-cell.is-shake {
+  animation: llama-shake 0.35s ease;
+}
+
+@keyframes llama-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
 .game-card-math { background: #dbeafe; }
 .game-card-measure { background: #dcfce7; }
 .game-card-patterns { background: #ede9fe; }
@@ -1773,6 +1890,7 @@ body.modal-open {
 .game-card-geography { background: #e0f2fe; }
 .game-card-match { background: #fae8ff; }
 .game-card-latin { background: #e0e7ff; }
+.game-card-llama { background: #f5e6d3; }
 .game-card-times { background: #ffe4e6; }
 .game-card-flags { background: #fef9c3; }
 

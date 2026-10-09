@@ -20,7 +20,8 @@ kid_education/
 │   ├── levels.js       # Math level ladder (one spec per level)
 │   ├── storage.js      # sessionStorage (score, wrong, timer) + localStorage (level progress)
 │   ├── times-*.js      # Times Tables game (app, settings, storage, levels)
-│   └── subset-*.js     # Subset game (app, settings, storage, generator)
+│   ├── subset-*.js     # Subset game (app, settings, storage, generator)
+│   └── llama-*.js      # Find a Llama game (app, settings, storage, levels, generator)
 └── README.md
 ```
 
@@ -60,6 +61,7 @@ The tab bar at the top switches subjects. Each subject is a folder with its own 
 | Times Tables   | `times/` | Available |
 | Subset         | `subset/`| Available |
 | Latin Square   | `latin/` | Available |
+| Find a Llama   | `llama/` | Available |
 | Flags          | `flags/` | Available |
 
 To add a new subject later:
@@ -257,6 +259,45 @@ Examples:
 /latin/?level=6&time=y
 /latin/?type=pic&size=4&diff=easy&time=y
 /latin/?type=num&size=6&diff=hard&time=n
+```
+
+## Find a Llama
+
+A logic puzzle at `/llama/`. The field is an N × N grid split into N colors, and N llamas are hiding in it:
+
+- exactly one llama in every row, every column, and every color;
+- llamas never touch, not even corner to corner.
+
+**Tap** a square once to mark it with X (a note, never checked; tap again to clear it). **Double-tap** a square (two taps within 0.6 s) to look for a llama. A llama is shown and locked in place; an empty square is locked with a red ✖ and costs a life. The child has **3 lives**: the third wrong guess ends the round and shows where the llamas were. Finding all N llamas wins the round.
+
+Boards are generated fresh each round (`js/llama-generator.js`) and always have exactly one solution, so the llamas can be found by reasoning alone.
+
+### Levels
+
+Level mode is the default. The ladder lives in `js/llama-levels.js` (8 levels): 4 × 4, 5 × 5, and 6 × 6 each with simple then twisty colors, then 7 × 7 and 8 × 8. Simple colors are round blobs; twisty colors snake around the field. The first four levels (4 × 4 and 5 × 5) give a **head start**: one color is a single square, so that llama is a sure first find.
+
+- **Auto-increase:** after 3 solved fields at a level (`LLAMA_LEVEL_UP_TARGET`), the level goes up. Lost rounds don't change the progress.
+- **Resume:** the level and progress are saved in `localStorage` (`kidLlama.*` keys).
+- **Pick a level** or switch to **Custom** (any size and color shape, no level progress) in Settings.
+
+### URL settings
+
+Base path: `/llama/`
+
+| Param   | Values                      | Meaning |
+|---------|-----------------------------|---------|
+| `level` | `1`–`8`                     | Level mode at this level. Without `level`, `size`, or `shape`, the saved level is resumed |
+| `size`  | `4`, `5`, `6`, `7`, `8`     | Custom mode: field size (N × N) |
+| `shape` | `compact`, `twisty`         | Custom mode: simple or twisty color regions |
+| `time`  | `y`, `n`                    | Show or hide the elapsed timer per round |
+
+**Defaults:** level mode at the saved level. Missing custom params fall back to `size=5`, `shape=compact`; `time=y`.
+
+Examples:
+
+```text
+/llama/?level=3&time=y
+/llama/?size=6&shape=twisty&time=n
 ```
 
 ## Flags
