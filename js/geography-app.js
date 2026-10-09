@@ -54,7 +54,13 @@ function formatElapsed(ms) {
 }
 
 function normalize(text) {
-  return String(text).trim().toLowerCase().replace(/\s+/g, ' ');
+  return String(text)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/['’.,]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
 }
 
 function updateScoreDisplay() {
@@ -193,7 +199,8 @@ function answersMatch(rawValue, question) {
   }
 
   // Accept abbreviations without spaces / case differences
-  return given === expected;
+  if (given === expected) return true;
+  return (question.aliases ?? []).some((alias) => normalize(alias) === given);
 }
 
 function checkAnswer(rawValue) {

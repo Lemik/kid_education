@@ -34,7 +34,7 @@
       "abbrev": "MB",
       "type": "province",
       "region": "west",
-      "famousCities": []
+      "famousCities": ["Brandon"]
     },
     {
       "id": "on",
@@ -70,7 +70,7 @@
       "abbrev": "NS",
       "type": "province",
       "region": "atlantic",
-      "famousCities": []
+      "famousCities": ["Sydney"]
     },
     {
       "id": "pe",
@@ -79,7 +79,7 @@
       "abbrev": "PE",
       "type": "province",
       "region": "atlantic",
-      "famousCities": []
+      "famousCities": ["Summerside"]
     },
     {
       "id": "nl",
@@ -88,7 +88,7 @@
       "abbrev": "NL",
       "type": "province",
       "region": "atlantic",
-      "famousCities": []
+      "famousCities": ["Corner Brook"]
     },
     {
       "id": "yt",
@@ -97,7 +97,7 @@
       "abbrev": "YT",
       "type": "territory",
       "region": "north",
-      "famousCities": []
+      "famousCities": ["Dawson City"]
     },
     {
       "id": "nt",
@@ -106,7 +106,7 @@
       "abbrev": "NT",
       "type": "territory",
       "region": "north",
-      "famousCities": []
+      "famousCities": ["Inuvik"]
     },
     {
       "id": "nu",
@@ -115,7 +115,7 @@
       "abbrev": "NU",
       "type": "territory",
       "region": "north",
-      "famousCities": []
+      "famousCities": ["Rankin Inlet"]
     }
   ],
   "nationalFacts": [
@@ -142,6 +142,260 @@
       "prompt": "How many provinces and territories does Canada have in total?",
       "answer": "13",
       "answerType": "number"
+    },
+    {
+      "id": "largest-city",
+      "prompt": "What is the largest city in Canada?",
+      "answer": "Toronto",
+      "answerType": "text",
+      "distractors": ["Montreal", "Vancouver", "Calgary"]
+    },
+    {
+      "id": "flag-leaf",
+      "prompt": "What leaf is on Canada's flag?",
+      "answer": "Maple leaf",
+      "answerType": "text",
+      "distractors": ["Oak leaf", "Pine leaf", "Birch leaf"],
+      "aliases": ["Maple", "A maple leaf"]
+    },
+    {
+      "id": "flag-colors",
+      "prompt": "What are the two colors of Canada's flag?",
+      "answer": "Red and white",
+      "answerType": "text",
+      "distractors": ["Blue and white", "Red and blue", "Green and white"],
+      "aliases": ["White and red", "Red white", "Red, white"]
+    },
+    {
+      "id": "national-animal",
+      "prompt": "What is Canada's national animal?",
+      "answer": "Beaver",
+      "answerType": "text",
+      "distractors": ["Moose", "Polar bear", "Loon"],
+      "aliases": ["The beaver", "A beaver"]
+    },
+    {
+      "id": "country-south",
+      "prompt": "Which country is south of Canada?",
+      "answer": "United States",
+      "answerType": "text",
+      "distractors": ["Mexico", "Greenland", "France"],
+      "aliases": ["USA", "US", "The United States", "United States of America"]
+    },
+    {
+      "id": "canada-day",
+      "prompt": "When is Canada Day?",
+      "answer": "July 1",
+      "answerType": "text",
+      "distractors": ["July 4", "June 24", "December 26"],
+      "aliases": ["July 1st", "July first", "1 July"]
+    },
+    {
+      "id": "confederation-year",
+      "prompt": "In what year did Confederation happen?",
+      "answer": "1867",
+      "answerType": "number",
+      "distractors": ["1776", "1812", "1982"]
+    },
+    {
+      "id": "num-oceans",
+      "prompt": "How many oceans touch Canada?",
+      "answer": "3",
+      "answerType": "number"
+    },
+    {
+      "id": "most-people",
+      "prompt": "Which province has the most people?",
+      "answer": "Ontario",
+      "answerType": "text",
+      "distractors": ["Quebec", "British Columbia", "Alberta"]
+    },
+    {
+      "id": "largest-province",
+      "prompt": "Which province is the largest in area?",
+      "answer": "Quebec",
+      "answerType": "text",
+      "distractors": ["Ontario", "British Columbia", "Alberta"]
+    },
+    {
+      "id": "smallest-province",
+      "prompt": "Which province is the smallest?",
+      "answer": "Prince Edward Island",
+      "answerType": "text",
+      "distractors": ["Nova Scotia", "New Brunswick", "Manitoba"],
+      "aliases": ["PEI"]
+    },
+    {
+      "id": "island-province",
+      "prompt": "Which province is entirely an island?",
+      "answer": "Prince Edward Island",
+      "answerType": "text",
+      "distractors": ["Nova Scotia", "New Brunswick", "Newfoundland and Labrador"],
+      "aliases": ["PEI"]
+    },
+    {
+      "id": "pacific-province",
+      "prompt": "Which province is on the Pacific Ocean?",
+      "answer": "British Columbia",
+      "answerType": "text",
+      "distractors": ["Alberta", "Ontario", "Nova Scotia"],
+      "aliases": ["BC"]
+    },
+    {
+      "id": "french-province",
+      "prompt": "In which province do most French-speaking Canadians live?",
+      "answer": "Quebec",
+      "answerType": "text",
+      "distractors": ["Ontario", "New Brunswick", "Manitoba"]
+    },
+    {
+      "id": "bilingual-province",
+      "prompt": "Which province is the only officially bilingual province?",
+      "answer": "New Brunswick",
+      "answerType": "text",
+      "distractors": ["Quebec", "Ontario", "Nova Scotia"]
+    },
+    {
+      "id": "niagara-falls",
+      "prompt": "Niagara Falls is in which province?",
+      "answer": "Ontario",
+      "answerType": "text",
+      "distractors": ["Quebec", "British Columbia", "Manitoba"]
+    },
+    {
+      "id": "parliament-city",
+      "prompt": "Canada's Parliament is in which city?",
+      "answer": "Ottawa",
+      "answerType": "text",
+      "distractors": ["Toronto", "Montreal", "Quebec City"]
+    },
+    {
+      "id": "winter-sport",
+      "prompt": "What is Canada's national winter sport?",
+      "answer": "Hockey",
+      "answerType": "text",
+      "distractors": ["Soccer", "Basketball", "Baseball"],
+      "aliases": ["Ice hockey"]
+    },
+    {
+      "id": "maple-syrup",
+      "prompt": "Which province makes the most maple syrup?",
+      "answer": "Quebec",
+      "answerType": "text",
+      "distractors": ["Ontario", "Nova Scotia", "British Columbia"]
+    },
+    {
+      "id": "loonie-bird",
+      "prompt": "Which bird is on the one-dollar coin (the loonie)?",
+      "answer": "Loon",
+      "answerType": "text",
+      "distractors": ["Goose", "Eagle", "Owl"],
+      "aliases": ["The loon", "A loon", "Common loon"]
+    },
+    {
+      "id": "newest-territory",
+      "prompt": "Which territory was created most recently?",
+      "answer": "Nunavut",
+      "answerType": "text",
+      "distractors": ["Yukon", "Northwest Territories", "Manitoba"]
+    }
+  ],
+  "indigenousHomelands": [
+    {
+      "id": "peoples-of-canada",
+      "questions": [
+        {
+          "id": "three-peoples",
+          "prompt": "First Nations, Inuit, and who else are the three Indigenous peoples of Canada?",
+          "answer": "Métis",
+          "distractors": ["Haida", "Cree", "Innu"],
+          "aliases": ["The Métis"]
+        }
+      ]
+    },
+    {
+      "id": "inuit",
+      "questions": [
+        {
+          "id": "inuit-region",
+          "prompt": "Inuit live mainly in which part of Canada?",
+          "answer": "The Arctic",
+          "distractors": ["The Prairies", "The Pacific coast", "The Great Lakes"],
+          "aliases": ["Arctic", "The North", "North"]
+        },
+        {
+          "id": "inuit-homeland",
+          "prompt": "What is the Inuit homeland in Canada called?",
+          "answer": "Inuit Nunangat",
+          "distractors": ["Haida Gwaii", "Mi'kma'ki", "The Prairies"]
+        },
+        {
+          "id": "nunavut-people",
+          "prompt": "Nunavut is part of the homeland of which Indigenous people?",
+          "answer": "Inuit",
+          "distractors": ["Métis", "Haida", "Mi'kmaq"],
+          "aliases": ["The Inuit"]
+        }
+      ]
+    },
+    {
+      "id": "haida",
+      "questions": [
+        {
+          "id": "haida-homeland",
+          "prompt": "The Haida are a First Nation. Their traditional territory includes which islands?",
+          "answer": "Haida Gwaii",
+          "distractors": ["Vancouver Island", "Prince Edward Island", "Newfoundland"]
+        },
+        {
+          "id": "haida-gwaii-people",
+          "prompt": "Haida Gwaii is the traditional territory of which First Nation?",
+          "answer": "Haida",
+          "distractors": ["Inuit", "Métis", "Cree"],
+          "aliases": ["The Haida"]
+        }
+      ]
+    },
+    {
+      "id": "mikmaq",
+      "questions": [
+        {
+          "id": "mikmaq-region",
+          "prompt": "The Mi'kmaq are a First Nation of which region of Canada?",
+          "answer": "Atlantic Canada",
+          "distractors": ["The Prairies", "The Arctic", "The Pacific coast"],
+          "aliases": ["Atlantic", "The Atlantic", "The Atlantic provinces"]
+        },
+        {
+          "id": "mikmaki-people",
+          "prompt": "Mi'kma'ki is the traditional territory of which First Nation?",
+          "answer": "Mi'kmaq",
+          "distractors": ["Inuit", "Métis", "Haida"],
+          "aliases": ["Mi'kmaw", "The Mi'kmaq"]
+        }
+      ]
+    },
+    {
+      "id": "blackfoot",
+      "questions": [
+        {
+          "id": "blackfoot-province",
+          "prompt": "In Canada, the traditional territory of the Blackfoot (Siksikaitsitapi) is mainly in which province?",
+          "answer": "Alberta",
+          "distractors": ["Nova Scotia", "Quebec", "Prince Edward Island"]
+        }
+      ]
+    },
+    {
+      "id": "metis",
+      "questions": [
+        {
+          "id": "red-river-province",
+          "prompt": "The historic centre of the Métis Nation at the Red River is in which province?",
+          "answer": "Manitoba",
+          "distractors": ["Nova Scotia", "British Columbia", "Quebec"]
+        }
+      ]
     }
   ]
 }

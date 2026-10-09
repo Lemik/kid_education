@@ -17,8 +17,8 @@ function shuffle(array) {
   return copy;
 }
 
-const PLACE_TOPICS = ['capital', 'capital-reverse', 'abbrev', 'abbrev-reverse'];
-const ALL_TOPICS = [...PLACE_TOPICS, 'facts'];
+const PLACE_TOPICS = ['capital', 'capital-reverse', 'abbrev', 'abbrev-reverse', 'city'];
+const ALL_TOPICS = [...PLACE_TOPICS, 'facts', 'peoples'];
 
 /**
  * Filter provinces/territories by settings subset / items.
@@ -76,6 +76,16 @@ function buildAbbrevReverseQuestion(item) {
   };
 }
 
+function buildCityQuestion(item) {
+  return {
+    display: `${pick(item.famousCities)} is in which province or territory?`,
+    answer: item.name,
+    topic: 'city',
+    itemId: item.id,
+    answerType: 'text',
+  };
+}
+
 function buildFactQuestion(fact) {
   return {
     display: fact.prompt,
@@ -83,6 +93,23 @@ function buildFactQuestion(fact) {
     topic: 'facts',
     itemId: fact.id,
     answerType: fact.answerType,
+    distractors: fact.distractors ?? [],
+    aliases: fact.aliases ?? [],
+  };
+}
+
+function buildPeoplesQuestion(geoData) {
+  const questions = (geoData.indigenousHomelands ?? []).flatMap((entry) => entry.questions ?? []);
+  if (questions.length === 0) return null;
+  const q = pick(questions);
+  return {
+    display: q.prompt,
+    answer: String(q.answer),
+    topic: 'peoples',
+    itemId: q.id,
+    answerType: 'text',
+    distractors: q.distractors ?? [],
+    aliases: q.aliases ?? [],
   };
 }
 
@@ -106,6 +133,11 @@ export function generateQuestion(settings, geoData) {
     return buildFactQuestion(pick(facts));
   }
 
+  if (topic === 'peoples') {
+    const question = buildPeoplesQuestion(geoData);
+    if (question) return question;
+  }
+
   const pool = collectPool(geoData, settings);
   const fallback = (geoData.provincesAndTerritories ?? [])[0] ?? {
     id: 'on',
@@ -127,6 +159,12 @@ export function generateQuestion(settings, geoData) {
       return buildAbbrevQuestion(item);
     case 'abbrev-reverse':
       return buildAbbrevReverseQuestion(item);
+    case 'city': {
+      const withCities = pool.filter((place) => (place.famousCities ?? []).length > 0);
+      return withCities.length > 0
+        ? buildCityQuestion(pick(withCities))
+        : buildCapitalQuestion(item);
+    }
     default:
       return buildCapitalQuestion(item);
   }
@@ -151,7 +189,7 @@ function placeDistractors(correct, pool, topic, correctItem) {
   for (const item of ordered) {
     if (topic === 'capital') {
       candidates.push(item.capital);
-    } else if (topic === 'capital-reverse' || topic === 'abbrev') {
+    } else if (topic === 'capital-reverse' || topic === 'abbrev' || topic === 'city') {
       candidates.push(item.name);
     } else if (topic === 'abbrev-reverse') {
       candidates.push(item.abbrev);
@@ -180,7 +218,9 @@ function placeDistractors(correct, pool, topic, correctItem) {
 function numberDistractors(correctAnswer) {
   const n = Number(correctAnswer);
   if (!Number.isFinite(n)) return [];
-  return [n - 1, n + 1, n - 2, n + 2, n + 3, 9, 11, 12, 14]
+  const nearby = [n - 1, n + 1, n - 2, n + 2, n + 3];
+  const fillers = n <= 20 ? [9, 11, 12, 14] : [];
+  return [...nearby, ...fillers]
     .filter((v) => v > 0 && String(v) !== String(correctAnswer))
     .map(String);
 }
@@ -197,7 +237,12 @@ export function generateGeographyChoices(question, geoData, settings, count = 4)
 
   let candidates = [];
 
-  if (question.topic === 'facts' && question.answerType === 'number') {
+  if ((question.distractors ?? []).length > 0) {
+    candidates = shuffle(question.distractors);
+    if (question.answerType === 'number') {
+      candidates.push(...numberDistractors(correct));
+    }
+  } else if (question.topic === 'facts' && question.answerType === 'number') {
     candidates = numberDistractors(correct);
   } else if (question.topic === 'facts') {
     // Text national facts (e.g. capital of Canada) — use provincial capitals + famous cities

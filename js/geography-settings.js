@@ -3,7 +3,9 @@ const TOPICS = new Set([
   'capital-reverse',
   'abbrev',
   'abbrev-reverse',
+  'city',
   'facts',
+  'peoples',
   'mixed',
 ]);
 
