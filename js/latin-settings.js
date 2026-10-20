@@ -1,12 +1,13 @@
 import { clampLevel, getLevel } from './levels.js';
 import { LATIN_LEVELS } from './latin-levels.js';
+import { withProfileSelections } from './profile.js';
 
 const TYPES = new Set(['pic', 'num', 'word']);
 const SIZES = new Set([3, 4, 5, 6]);
 const DIFFS = new Set(['easy', 'medium', 'hard']);
 const TIMES = new Set(['y', 'n']);
 
-export const DEFAULT_SETTINGS = Object.freeze({
+export const DEFAULT_SETTINGS = withProfileSelections({
   type: 'pic',
   size: 4,
   diff: 'easy',

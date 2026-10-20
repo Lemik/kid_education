@@ -1,9 +1,15 @@
+import { cheer } from './profile.js';
 import {
   parseSettingsFromUrl,
   settingsToUrl,
   readSettingsFromForm,
   applySettingsToForm,
+  buildLevelSettings,
+  isLevelMode,
 } from './subset-settings.js';
+import { SUBSET_LEVELS } from './subset-levels.js';
+import { LEVEL_UP_TARGET } from './levels.js';
+import { createLadder, createLevelStore } from './level-progress.js';
 import { generateTree, findMaking, OP_SYMBOLS, PARTS } from './subset-generator.js';
 import {
   getScore,
@@ -64,9 +70,23 @@ const els = {
   settingsForm: document.getElementById('settingsForm'),
   settingsError: document.getElementById('settingsError'),
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+  levelFields: document.getElementById('levelFields'),
+  levelSelect: document.getElementById('settingLevel'),
+  levelHint: document.getElementById('levelHint'),
+  customFields: document.getElementById('customFields'),
+  levelWrap: document.getElementById('levelWrap'),
+  levelValue: document.getElementById('levelValue'),
+  levelProgress: document.getElementById('levelProgress'),
+  levelLabel: document.getElementById('levelLabel'),
 };
 
-let settings = parseSettingsFromUrl();
+const ladder = createLadder({
+  levels: SUBSET_LEVELS,
+  target: LEVEL_UP_TARGET,
+  store: createLevelStore('subset'),
+});
+
+let settings = parseSettingsFromUrl(window.location.search, ladder.saved());
 let timerInterval = null;
 const pendingTimeouts = new Set();
 
@@ -76,6 +96,7 @@ const pendingTimeouts = new Set();
  */
 const round = {
   root: null,
+  ops: [],
   total: 0,
   solved: 0,
   done: false,
@@ -102,6 +123,48 @@ function formatElapsed(ms) {
 function updateScoreDisplay() {
   els.score.textContent = String(getScore());
   els.wrongScore.textContent = String(getWrong());
+}
+
+function updateLevelDisplay() {
+  ladder.render(
+    { wrap: els.levelWrap, value: els.levelValue, progress: els.levelProgress, label: els.levelLabel },
+    settings.level,
+    isLevelMode(settings),
+  );
+}
+
+/** Use the chosen level. Any level on the ladder can be played. */
+function clampToUnlocked(next) {
+  if (!isLevelMode(next)) return next;
+  const level = ladder.resolve(next.level);
+  return level === next.level ? next : buildLevelSettings(level, next);
+}
+
+/** Count a correct find toward the next level; returns `{ message, levelUp }` or null. */
+function recordLevelCorrect() {
+  if (!isLevelMode(settings)) return null;
+  const result = ladder.recordWin(settings.level);
+  if (!result) return null;
+  if (result.mastered) {
+    return { message: cheer(`You mastered the top level — ${settings.label}!`), levelUp: false };
+  }
+
+  settings = buildLevelSettings(result.next, settings);
+  history.replaceState(null, '', settingsToUrl(settings));
+  return { message: cheer(`Level up! Level ${settings.level} — ${settings.label}`), levelUp: true };
+}
+
+function populateLevelSelect() {
+  ladder.fillSelect(els.levelSelect);
+  els.levelHint.textContent =
+    `Moves up a level after ${LEVEL_UP_TARGET} correct finds in a row. ` +
+    'Finished levels show a check. Playing a finished level again does not earn coins.';
+}
+
+function updateModeFields() {
+  const levelMode = els.settingsForm.querySelector('input[name="mode"]:checked')?.value === 'level';
+  els.levelFields.hidden = !levelMode;
+  els.customFields.hidden = levelMode;
 }
 
 function clearFeedback() {
@@ -379,6 +442,7 @@ function startRound() {
   }
 
   round.root = root;
+  round.ops = settings.op;
   round.total = count;
   round.solved = 0;
   round.done = false;
@@ -386,7 +450,7 @@ function startRound() {
   for (const leaf of byDepth[byDepth.length - 1]) revealNode(leaf, false);
 
   els.hint.textContent =
-    `Tap the number you can make from two other numbers with ${opsText(settings.op)}. ` +
+    `Tap the number you can make from two other numbers with ${opsText(round.ops)}. ` +
     'Every 5 answers make a new object.';
   updateProgress();
 }
@@ -427,7 +491,9 @@ function onPartTapped(node, index, path) {
   if (!targets.includes(index)) {
     incrementWrong();
     recordWrong();
+    if (isLevelMode(settings)) ladder.recordMiss(settings.level);
     updateScoreDisplay();
+    updateLevelDisplay();
     shake(path);
     showFeedback(`${values[index]} can't be made from two other numbers here. Try again!`, 'incorrect');
     return;
@@ -435,18 +501,27 @@ function onPartTapped(node, index, path) {
 
   // Lower objects feed the one above, so only the planned answer can be used there.
   if (node.parent && index !== planned) {
-    const twin = equationText(values[index], findMaking(values, index, settings.op));
+    const twin = equationText(values[index], findMaking(values, index, round.ops));
     showFeedback(`That's true too: ${twin}! But find another one.`, 'hint');
     return;
   }
 
   incrementScore();
-  recordCorrect();
+  const streak = recordCorrect();
+  if (isLevelMode(settings)) {
+    ladder.pay({ level: settings.level, streak, fromEl: path });
+  }
+  const levelResult = recordLevelCorrect();
   updateScoreDisplay();
+  updateLevelDisplay();
 
-  const making = findMaking(values, index, settings.op);
+  const making = findMaking(values, index, round.ops);
   const equation = equationText(values[index], making);
-  showCorrectFeedback(`Yes! ${equation}`);
+  if (levelResult) {
+    showFeedback(levelResult.message, 'correct level-up');
+  } else {
+    showCorrectFeedback(`Yes! ${equation}`);
+  }
 
   const card = node.card;
   node.answer = values[index];
@@ -460,6 +535,13 @@ function onPartTapped(node, index, path) {
 
   round.solved += 1;
   updateProgress();
+
+  // The board was built for the old level, so start a new one at the new level.
+  if (levelResult?.levelUp) {
+    round.done = true;
+    later(startRound, 2600);
+    return;
+  }
 
   const parent = node.parent;
   if (!parent) {
@@ -481,7 +563,9 @@ function finishRound(equation) {
 /* ---------- Settings ---------- */
 
 function openSettingsModal() {
-  applySettingsToForm(els.settingsForm, settings);
+  populateLevelSelect();
+  applySettingsToForm(els.settingsForm, settings, ladder.saved());
+  updateModeFields();
   els.settingsError.hidden = true;
   els.settingsError.textContent = '';
   els.settingsModal.hidden = false;
@@ -497,6 +581,7 @@ function applyNewSettings(next) {
   stopTimer();
   settings = next;
   updateScoreDisplay();
+  updateLevelDisplay();
   startTimer();
   startRound();
 }
@@ -504,13 +589,14 @@ function applyNewSettings(next) {
 function onSettingsSubmit(event) {
   event.preventDefault();
 
-  const { settings: next, error } = readSettingsFromForm(els.settingsForm);
+  const { settings: picked, error } = readSettingsFromForm(els.settingsForm);
   if (error) {
     els.settingsError.hidden = false;
     els.settingsError.textContent = error;
     return;
   }
 
+  const next = clampToUnlocked(picked);
   commitSettingsChange(next, settingsToUrl, resetSession);
   applyNewSettings(next);
   closeSettingsModal();
@@ -533,12 +619,21 @@ function bindEvents() {
     }
   });
 
+  for (const radio of els.settingsForm.querySelectorAll('input[name="mode"]')) {
+    radio.addEventListener('change', updateModeFields);
+  }
+
   els.settingsForm.addEventListener('submit', onSettingsSubmit);
 }
 
 function init() {
-  settings = parseSettingsFromUrl();
+  settings = clampToUnlocked(parseSettingsFromUrl(window.location.search, ladder.saved()));
+  populateLevelSelect();
+  if (isLevelMode(settings)) {
+    history.replaceState(null, '', settingsToUrl(settings));
+  }
   updateScoreDisplay();
+  updateLevelDisplay();
   startTimer();
   bindEvents();
   startRound();

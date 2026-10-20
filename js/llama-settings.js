@@ -1,11 +1,12 @@
 import { clampLevel, getLevel } from './levels.js';
 import { LLAMA_LEVELS } from './llama-levels.js';
+import { withProfileSelections } from './profile.js';
 
 const SIZES = new Set([4, 5, 6, 7, 8]);
 const SHAPES = new Set(['compact', 'twisty']);
 const TIMES = new Set(['y', 'n']);
 
-export const DEFAULT_SETTINGS = Object.freeze({
+export const DEFAULT_SETTINGS = withProfileSelections({
   size: 5,
   shape: 'compact',
   time: 'y',

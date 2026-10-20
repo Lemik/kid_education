@@ -1,9 +1,15 @@
+import { cheer } from './profile.js';
 import {
   parseSettingsFromUrl,
   settingsToUrl,
   readSettingsFromForm,
   applySettingsToForm,
+  buildLevelSettings,
+  isLevelMode,
 } from './flags-settings.js';
+import { FLAGS_LEVELS } from './flags-levels.js';
+import { LEVEL_UP_TARGET } from './levels.js';
+import { createLadder, createLevelStore } from './level-progress.js';
 import { generateQuestion, generateMatchBoard, flagEmoji } from './flags-generator.js';
 import {
   getScore,
@@ -33,9 +39,23 @@ const els = {
   settingsError: document.getElementById('settingsError'),
   pairsField: document.getElementById('pairsField'),
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+  levelFields: document.getElementById('levelFields'),
+  levelSelect: document.getElementById('settingLevel'),
+  levelHint: document.getElementById('levelHint'),
+  customFields: document.getElementById('customFields'),
+  levelWrap: document.getElementById('levelWrap'),
+  levelValue: document.getElementById('levelValue'),
+  levelProgress: document.getElementById('levelProgress'),
+  levelLabel: document.getElementById('levelLabel'),
 };
 
-let settings = parseSettingsFromUrl();
+const ladder = createLadder({
+  levels: FLAGS_LEVELS,
+  target: LEVEL_UP_TARGET,
+  store: createLevelStore('flags'),
+});
+
+let settings = parseSettingsFromUrl(window.location.search, ladder.saved());
 let flagData = null;
 let currentQuestion = null;
 let acceptingAnswers = true;
@@ -61,6 +81,59 @@ function formatElapsed(ms) {
 function updateScoreDisplay() {
   els.score.textContent = String(getScore());
   els.wrongScore.textContent = String(getWrong());
+}
+
+function updateLevelDisplay() {
+  ladder.render(
+    { wrap: els.levelWrap, value: els.levelValue, progress: els.levelProgress, label: els.levelLabel },
+    settings.level,
+    isLevelMode(settings),
+  );
+}
+
+/** Use the chosen level. Any level on the ladder can be played. */
+function clampToUnlocked(next) {
+  if (!isLevelMode(next)) return next;
+  const level = ladder.resolve(next.level);
+  return level === next.level ? next : buildLevelSettings(level, next);
+}
+
+/** Count a correct answer toward the next level; returns a message on level-up. */
+function recordLevelCorrect() {
+  if (!isLevelMode(settings)) return null;
+  const result = ladder.recordWin(settings.level);
+  if (!result) return null;
+  if (result.mastered) return cheer(`You mastered the top level — ${settings.label}!`);
+
+  settings = buildLevelSettings(result.next, settings);
+  history.replaceState(null, '', settingsToUrl(settings));
+  return cheer(`Level up! Level ${settings.level} — ${settings.label}`);
+}
+
+/** Pay for and count one correct answer; returns a message on level-up. */
+function recordWin(fromEl) {
+  const streak = recordCorrect();
+  if (isLevelMode(settings)) {
+    ladder.pay({ level: settings.level, streak, fromEl });
+  }
+  return recordLevelCorrect();
+}
+
+function recordMiss() {
+  if (isLevelMode(settings)) ladder.recordMiss(settings.level);
+}
+
+function populateLevelSelect() {
+  ladder.fillSelect(els.levelSelect);
+  els.levelHint.textContent =
+    `Moves up a level after ${LEVEL_UP_TARGET} correct answers in a row. ` +
+    'Finished levels show a check. Playing a finished level again does not earn coins.';
+}
+
+function updateModeFields() {
+  const levelMode = els.settingsForm.querySelector('input[name="play"]:checked')?.value === 'level';
+  els.levelFields.hidden = !levelMode;
+  els.customFields.hidden = levelMode;
 }
 
 function clearFeedback() {
@@ -184,21 +257,30 @@ function onChoiceSelected(btn) {
   }
   if (!correct) btn.classList.add('choice-wrong');
 
+  let levelMessage = null;
   if (correct) {
     incrementScore();
-    recordCorrect();
-    showCorrectFeedback(`Great job! That's ${currentQuestion.country.name}.`);
+    levelMessage = recordWin(btn);
+    if (levelMessage) {
+      showFeedback(levelMessage, 'correct level-up');
+    } else {
+      showCorrectFeedback(`Great job! That's ${currentQuestion.country.name}.`);
+    }
   } else {
     incrementWrong();
     recordWrong();
+    recordMiss();
     const answer = currentQuestion.kind === 'flag'
       ? currentQuestion.country.name
       : `${flagEmoji(correctId)} ${currentQuestion.country.name}`;
     showFeedback(`Not quite — the answer was ${answer}.`, 'incorrect');
   }
   updateScoreDisplay();
+  updateLevelDisplay();
 
-  advanceTimeout = setTimeout(showRound, correct ? 1300 : 3100);
+  let delay = correct ? 1300 : 3100;
+  if (levelMessage) delay = 2600;
+  advanceTimeout = setTimeout(showRound, delay);
 }
 
 /* ---------- Match ---------- */
@@ -275,10 +357,15 @@ function checkMatch() {
     }
     match.remaining -= 1;
     incrementScore();
-    recordCorrect();
+    const levelMessage = recordWin(nameBtn);
     updateScoreDisplay();
+    updateLevelDisplay();
 
-    if (match.remaining === 0) {
+    if (levelMessage) {
+      match.busy = true;
+      showFeedback(levelMessage, 'correct level-up');
+      advanceTimeout = setTimeout(showRound, 2600);
+    } else if (match.remaining === 0) {
       showCorrectFeedback('You matched them all!');
       advanceTimeout = setTimeout(showRound, 1800);
     } else {
@@ -289,7 +376,9 @@ function checkMatch() {
 
   incrementWrong();
   recordWrong();
+  recordMiss();
   updateScoreDisplay();
+  updateLevelDisplay();
   showFeedback('Not a match — try again.', 'incorrect');
 
   match.busy = true;
@@ -323,7 +412,9 @@ function syncPairsField() {
 }
 
 function openSettingsModal() {
-  applySettingsToForm(els.settingsForm, settings);
+  populateLevelSelect();
+  applySettingsToForm(els.settingsForm, settings, ladder.saved());
+  updateModeFields();
   syncPairsField();
   els.settingsError.hidden = true;
   els.settingsError.textContent = '';
@@ -342,6 +433,7 @@ function applyNewSettings(next) {
   settings = next;
   currentQuestion = null;
   updateScoreDisplay();
+  updateLevelDisplay();
   startTimer();
   if (flagData) showRound();
 }
@@ -349,13 +441,14 @@ function applyNewSettings(next) {
 function onSettingsSubmit(event) {
   event.preventDefault();
 
-  const { settings: next, error } = readSettingsFromForm(els.settingsForm);
+  const { settings: picked, error } = readSettingsFromForm(els.settingsForm);
   if (error) {
     els.settingsError.hidden = false;
     els.settingsError.textContent = error;
     return;
   }
 
+  const next = clampToUnlocked(picked);
   commitSettingsChange(next, settingsToUrl, resetSession);
   applyNewSettings(next);
   closeSettingsModal();
@@ -377,13 +470,22 @@ function bindEvents() {
     }
   });
 
+  for (const radio of els.settingsForm.querySelectorAll('input[name="play"]')) {
+    radio.addEventListener('change', updateModeFields);
+  }
+
   els.settingsForm.addEventListener('change', syncPairsField);
   els.settingsForm.addEventListener('submit', onSettingsSubmit);
 }
 
 async function init() {
-  settings = parseSettingsFromUrl();
+  settings = clampToUnlocked(parseSettingsFromUrl(window.location.search, ladder.saved()));
+  populateLevelSelect();
+  if (isLevelMode(settings)) {
+    history.replaceState(null, '', settingsToUrl(settings));
+  }
   updateScoreDisplay();
+  updateLevelDisplay();
   startTimer();
   bindEvents();
 

@@ -1,27 +1,32 @@
-// Level progress persists across visits (localStorage).
-const LEVEL_KEY = 'kidLlama.level';
-const LEVEL_SOLVED_KEY = 'kidLlama.levelSolved';
+import { getGameProgress, markLevelDone, setGameProgress } from './profile.js';
 
-function readNumber(key, fallback) {
-  const raw = localStorage.getItem(key);
-  if (raw == null) return fallback;
-  const value = Number(raw);
-  return Number.isFinite(value) ? value : fallback;
-}
+const GAME = 'llama';
 
 export function getSavedLevel() {
-  return Math.max(1, Math.floor(readNumber(LEVEL_KEY, 1)));
+  return getGameProgress(GAME).level;
 }
 
 export function setSavedLevel(level) {
-  localStorage.setItem(LEVEL_KEY, String(Math.max(1, Math.floor(level))));
+  setGameProgress(GAME, { level });
 }
 
 /** Boards solved at the current level. */
 export function getLevelSolved() {
-  return Math.max(0, Math.floor(readNumber(LEVEL_SOLVED_KEY, 0)));
+  return getGameProgress(GAME).streak;
 }
 
 export function setLevelSolved(count) {
-  localStorage.setItem(LEVEL_SOLVED_KEY, String(Math.max(0, Math.floor(count))));
+  setGameProgress(GAME, { streak: count });
+}
+
+export function setLevelMastered(done) {
+  setGameProgress(GAME, { mastered: done });
+}
+
+export function getCompletedLevels() {
+  return getGameProgress(GAME).completed;
+}
+
+export function markLevelDoneHere(level) {
+  markLevelDone(GAME, level);
 }

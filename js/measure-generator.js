@@ -111,7 +111,7 @@ export function generateQuestion(settings, unitsData) {
   };
   const pair = pool.length > 0 ? pick(pool) : fallback;
 
-  const subtype = resolveSubtype(settings.mode);
+  const subtype = resolveSubtype(settings.qtype);
   const direction = resolveDirection(settings.dir, subtype);
 
   let amount;

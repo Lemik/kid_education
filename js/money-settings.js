@@ -1,3 +1,7 @@
+import { MONEY_LEVELS } from './money-levels.js';
+import { presetLevelSettings } from './level-progress.js';
+import { withProfileSelections } from './profile.js';
+
 const TYPES = new Set(['count', 'compare', 'equation']);
 const COINS = new Set(['nickel', 'dime', 'quarter', 'loonie', 'toonie']);
 const MAX_COINS = new Set([1, 2, 3, 4]);
@@ -6,7 +10,10 @@ const SIGNS = new Set(['positive', 'both']);
 const TIMES = new Set(['y', 'n']);
 const INPUTS = new Set(['answer', 'multichoice']);
 
-export const DEFAULT_SETTINGS = Object.freeze({
+const DIFFICULTY_PARAMS = ['type', 'coins', 'maxCoins', 'maxTotal'];
+
+export const DEFAULT_SETTINGS = withProfileSelections({
+  mode: 'custom',
   type: ['count', 'compare', 'equation'],
   coins: ['dime', 'quarter'],
   maxCoins: 3,
@@ -35,21 +42,47 @@ function parseNumberParam(raw, allowed, fallback) {
   return allowed.has(value) ? value : fallback;
 }
 
+export function isLevelMode(settings) {
+  return settings?.mode === 'level';
+}
+
+/** Choices that apply in both modes. */
+function displayPrefs(raw) {
+  return {
+    sign: SIGNS.has(raw.sign) ? raw.sign : DEFAULT_SETTINGS.sign,
+    time: TIMES.has(raw.time) ? raw.time : DEFAULT_SETTINGS.time,
+    input: INPUTS.has(raw.input) ? raw.input : DEFAULT_SETTINGS.input,
+  };
+}
+
+export function buildLevelSettings(level, display = DEFAULT_SETTINGS) {
+  return presetLevelSettings(MONEY_LEVELS, level, displayPrefs(display));
+}
+
 /**
  * Parse settings from the current URL query string.
- * Invalid values fall back to defaults.
+ * Custom mode when difficulty params are set without `level`; otherwise level
+ * mode at `level` (or `savedLevel`). Invalid values fall back to defaults.
  */
-export function parseSettingsFromUrl(search = window.location.search) {
+export function parseSettingsFromUrl(search = window.location.search, savedLevel = 1) {
   const params = new URLSearchParams(search);
+  const display = {
+    sign: params.get('sign'),
+    time: params.get('time'),
+    input: params.get('input'),
+  };
+
+  if (params.has('level') || !DIFFICULTY_PARAMS.some((key) => params.has(key))) {
+    return buildLevelSettings(params.get('level') ?? savedLevel, display);
+  }
 
   return {
+    mode: 'custom',
     type: parseList(params.get('type'), TYPES, DEFAULT_SETTINGS.type),
     coins: parseList(params.get('coins'), COINS, DEFAULT_SETTINGS.coins),
     maxCoins: parseNumberParam(params.get('maxCoins'), MAX_COINS, DEFAULT_SETTINGS.maxCoins),
     maxTotal: parseNumberParam(params.get('maxTotal'), MAX_TOTALS, DEFAULT_SETTINGS.maxTotal),
-    sign: SIGNS.has(params.get('sign')) ? params.get('sign') : DEFAULT_SETTINGS.sign,
-    time: TIMES.has(params.get('time')) ? params.get('time') : DEFAULT_SETTINGS.time,
-    input: INPUTS.has(params.get('input')) ? params.get('input') : DEFAULT_SETTINGS.input,
+    ...displayPrefs(display),
   };
 }
 
@@ -58,10 +91,14 @@ export function parseSettingsFromUrl(search = window.location.search) {
  */
 export function settingsToQuery(settings) {
   const params = new URLSearchParams();
-  params.set('type', settings.type.join(','));
-  params.set('coins', settings.coins.join(','));
-  params.set('maxCoins', String(settings.maxCoins));
-  params.set('maxTotal', String(settings.maxTotal));
+  if (isLevelMode(settings)) {
+    params.set('level', String(settings.level));
+  } else {
+    params.set('type', settings.type.join(','));
+    params.set('coins', settings.coins.join(','));
+    params.set('maxCoins', String(settings.maxCoins));
+    params.set('maxTotal', String(settings.maxTotal));
+  }
   params.set('sign', settings.sign);
   params.set('time', settings.time);
   params.set('input', settings.input);
@@ -83,6 +120,7 @@ export function settingsToUrl(settings, base = window.location.href) {
  */
 export function readSettingsFromForm(form) {
   const data = new FormData(form);
+  const mode = String(data.get('mode') ?? '');
   const type = data.getAll('type').map(String).filter((value) => TYPES.has(value));
   const coins = data.getAll('coins').map(String).filter((value) => COINS.has(value));
   const maxCoins = Number(data.get('maxCoins'));
@@ -90,6 +128,15 @@ export function readSettingsFromForm(form) {
   const sign = String(data.get('sign') ?? '');
   const time = String(data.get('time') ?? '');
   const input = String(data.get('input') ?? '');
+
+  if (!SIGNS.has(sign) || !TIMES.has(time) || !INPUTS.has(input)) {
+    return { settings: null, error: 'Please fill in all settings.' };
+  }
+
+  const display = { sign, time, input };
+  if (mode === 'level') {
+    return { settings: buildLevelSettings(data.get('level'), display), error: null };
+  }
 
   if (type.length === 0) {
     return { settings: null, error: 'Select at least one question type.' };
@@ -105,10 +152,6 @@ export function readSettingsFromForm(form) {
 
   if (!MAX_TOTALS.has(maxTotal)) {
     return { settings: null, error: 'Choose a valid max total.' };
-  }
-
-  if (!SIGNS.has(sign) || !TIMES.has(time) || !INPUTS.has(input)) {
-    return { settings: null, error: 'Please fill in all settings.' };
   }
 
   // Smallest enabled coin must be able to fit under maxTotal.
@@ -128,15 +171,21 @@ export function readSettingsFromForm(form) {
   }
 
   return {
-    settings: { type, coins, maxCoins, maxTotal, sign, time, input },
+    settings: { mode: 'custom', type, coins, maxCoins, maxTotal, ...display },
     error: null,
   };
 }
 
 /**
  * Populate the settings modal form from a settings object.
+ * `savedLevel` preselects the level dropdown in custom mode.
  */
-export function applySettingsToForm(form, settings) {
+export function applySettingsToForm(form, settings, savedLevel = 1) {
+  const modeInput = form.querySelector(`input[name="mode"][value="${settings.mode}"]`);
+  if (modeInput) modeInput.checked = true;
+
+  form.level.value = String(settings.level ?? savedLevel);
+
   for (const checkbox of form.querySelectorAll('input[name="type"]')) {
     checkbox.checked = settings.type.includes(checkbox.value);
   }

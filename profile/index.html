@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — Kid Education</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/png" href="../favicon.png" />
+</head>
+<body>
+  <div class="app">
+    <nav class="tabs" id="subjectNav" aria-label="Subjects">
+      <a class="tab tab-home" href="../">Home</a>
+      <a class="tab" href="../math/">Mathematics</a>
+      <a class="tab" href="../times/">Times Tables</a>
+      <a class="tab" href="../subset/">Subset</a>
+      <a class="tab" href="../measure/">Measurements</a>
+      <a class="tab" href="../patterns/">Patterns</a>
+      <a class="tab" href="../words/">Words</a>
+      <a class="tab" href="../unscramble/">Unscramble</a>
+      <a class="tab" href="../sentences/">Sentences</a>
+      <a class="tab" href="../clock/">Clock</a>
+      <a class="tab" href="../money/">Money</a>
+      <a class="tab" href="../geography/">Geography</a>
+      <a class="tab" href="../flags/">Flags</a>
+      <a class="tab" href="../match/">Find a Match</a>
+      <a class="tab" href="../latin/">Latin Square</a>
+      <a class="tab" href="../llama/">Find a Llama</a>
+    </nav>
+    <header class="top-bar">
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Subjects menu" aria-expanded="false" aria-controls="subjectNav">☰</button>
+      <a class="home-btn" href="../">← Home</a>
+      <h1 class="home-heading">Profile</h1>
+    </header>
+
+    <main class="main profile-main">
+      <section class="profile-summary" aria-labelledby="profileTotal">
+        <div class="profile-ring-wrap">
+          <svg class="profile-ring" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="profile-ring-track" cx="60" cy="60" r="52" />
+            <circle class="profile-ring-value" id="profileRing" cx="60" cy="60" r="52" />
+          </svg>
+          <p class="profile-ring-label">
+            <strong id="profilePercent">0%</strong>
+            <span>finished</span>
+          </p>
+        </div>
+        <div class="profile-totals">
+          <p class="profile-total-main" id="profileTotal">0 levels finished</p>
+          <p class="profile-total-sub" id="profileStarted">No games started</p>
+          <p class="profile-saved">Saved on this device</p>
+        </div>
+        <div class="profile-purse">
+          <div class="profile-stars" id="profileStars" aria-hidden="true"></div>
+          <p class="profile-coin-count" id="profileCoins">0 coins</p>
+        </div>
+        <label class="profile-name">
+          <span class="profile-name-label" id="profileGreeting">Name</span>
+          <input
+            id="profileName"
+            type="text"
+            maxlength="20"
+            placeholder="Add a name"
+            autocomplete="nickname"
+            enterkeyhint="done"
+          />
+        </label>
+        <div class="profile-choices" id="profileChoices"></div>
+      </section>
+
+      <div class="profile-games-head">
+        <h2 class="profile-games-heading">Games</h2>
+        <p class="profile-legend">
+          Each square is a level. Green is finished, and a blue outline is the level in progress.
+          Orange marks fill up as that level gets closer to done.
+        </p>
+      </div>
+      <div class="profile-grid" id="profileGrid"></div>
+    </main>
+  </div>
+
+  <div class="nav-backdrop" id="navBackdrop" hidden></div>
+
+  <footer class="site-footer">
+    <p class="site-footer__mark">
+      <a href="https://leonid.dushyn.com" target="_blank" rel="noopener noreferrer">
+        <img src="../favicon.png" alt="Leonid Dushyn" width="48" height="48" />
+      </a>
+    </p>
+    <p class="site-footer__support">
+      <a
+        class="coffee-link"
+        href="https://ko-fi.com/dushyn"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <svg
+          class="coffee-link__icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M10 2v2" />
+          <path d="M14 2v2" />
+          <path d="M6 2v2" />
+          <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1" />
+        </svg>
+        Buy me a coffee
+      </a>
+    </p>
+  </footer>
+
+  <script type="module" src="../js/nav.js"></script>
+  <script type="module" src="../js/coins.js"></script>
+  <script type="module" src="../js/profile-page.js?v=2"></script>
+</body>
+</html>

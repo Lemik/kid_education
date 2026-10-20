@@ -1,3 +1,7 @@
+import { PATTERNS_LEVELS } from './patterns-levels.js';
+import { presetLevelSettings } from './level-progress.js';
+import { withProfileSelections } from './profile.js';
+
 const RULES = new Set(['+', '-', '*']);
 const STEPS = new Set([1, 2, 3, 5, 10]);
 const STARTS = new Set(['1-10', '1-20', '1-50', '5-30']);
@@ -5,7 +9,11 @@ const SIGNS = new Set(['positive', 'both']);
 const TIMES = new Set(['y', 'n']);
 const INPUTS = new Set(['answer', 'multichoice']);
 
-export const DEFAULT_SETTINGS = Object.freeze({
+/** URL params that pick custom difficulty. */
+const DIFFICULTY_PARAMS = ['rule', 'step', 'start'];
+
+export const DEFAULT_SETTINGS = withProfileSelections({
+  mode: 'custom',
   rule: ['+'],
   step: [2, 5],
   start: '1-20',
@@ -13,6 +21,23 @@ export const DEFAULT_SETTINGS = Object.freeze({
   time: 'y',
   input: 'answer',
 });
+
+export function isLevelMode(settings) {
+  return settings?.mode === 'level';
+}
+
+/** Choices that apply in both modes. */
+function displayPrefs(raw) {
+  return {
+    sign: SIGNS.has(raw.sign) ? raw.sign : DEFAULT_SETTINGS.sign,
+    time: TIMES.has(raw.time) ? raw.time : DEFAULT_SETTINGS.time,
+    input: INPUTS.has(raw.input) ? raw.input : DEFAULT_SETTINGS.input,
+  };
+}
+
+export function buildLevelSettings(level, display = DEFAULT_SETTINGS) {
+  return presetLevelSettings(PATTERNS_LEVELS, level, displayPrefs(display));
+}
 
 function parseRules(raw) {
   if (raw == null || String(raw).trim() === '') {
@@ -47,23 +72,29 @@ function parseSteps(raw) {
 
 /**
  * Parse settings from the current URL query string.
+ * Custom mode when a difficulty param (rule, step, start) is set without
+ * `level`; otherwise level mode at `level` (or `savedLevel`).
  * Invalid values fall back to defaults.
  */
-export function parseSettingsFromUrl(search = window.location.search) {
+export function parseSettingsFromUrl(search = window.location.search, savedLevel = 1) {
   const params = new URLSearchParams(search);
+  const display = {
+    sign: params.get('sign'),
+    time: params.get('time'),
+    input: params.get('input'),
+  };
+
+  if (params.has('level') || !DIFFICULTY_PARAMS.some((key) => params.has(key))) {
+    return buildLevelSettings(params.get('level') ?? savedLevel, display);
+  }
 
   const start = params.get('start');
-  const sign = params.get('sign');
-  const time = params.get('time');
-  const input = params.get('input');
-
   return {
+    mode: 'custom',
     rule: parseRules(params.get('rule')),
     step: parseSteps(params.get('step')),
     start: STARTS.has(start) ? start : DEFAULT_SETTINGS.start,
-    sign: SIGNS.has(sign) ? sign : DEFAULT_SETTINGS.sign,
-    time: TIMES.has(time) ? time : DEFAULT_SETTINGS.time,
-    input: INPUTS.has(input) ? input : DEFAULT_SETTINGS.input,
+    ...displayPrefs(display),
   };
 }
 
@@ -73,11 +104,17 @@ export function parseSettingsFromUrl(search = window.location.search) {
  */
 export function settingsToQuery(settings) {
   const params = new URLSearchParams();
-  params.set('start', settings.start);
+  if (isLevelMode(settings)) {
+    params.set('level', String(settings.level));
+  } else {
+    params.set('start', settings.start);
+    params.set('step', settings.step.join(','));
+  }
   params.set('sign', settings.sign);
   params.set('time', settings.time);
   params.set('input', settings.input);
-  params.set('step', settings.step.join(','));
+  if (isLevelMode(settings)) return params.toString();
+
   const rule = settings.rule.map((value) => encodeURIComponent(value)).join(',');
   return `${params.toString()}&rule=${rule}`;
 }
@@ -97,6 +134,7 @@ export function settingsToUrl(settings, base = window.location.href) {
  */
 export function readSettingsFromForm(form) {
   const data = new FormData(form);
+  const mode = String(data.get('mode') ?? '');
   const start = String(data.get('start') ?? '');
   const sign = String(data.get('sign') ?? '');
   const time = String(data.get('time') ?? '');
@@ -106,6 +144,15 @@ export function readSettingsFromForm(form) {
     .getAll('step')
     .map((value) => Number(value))
     .filter((n) => STEPS.has(n));
+
+  if (!SIGNS.has(sign) || !TIMES.has(time) || !INPUTS.has(input)) {
+    return { settings: null, error: 'Please fill in all settings.' };
+  }
+
+  const display = { sign, time, input };
+  if (mode === 'level') {
+    return { settings: buildLevelSettings(data.get('level'), display), error: null };
+  }
 
   if (rule.length === 0) {
     return { settings: null, error: 'Select at least one rule (+, −, or ×).' };
@@ -124,20 +171,21 @@ export function readSettingsFromForm(form) {
     return { settings: null, error: 'Choose a valid start range.' };
   }
 
-  if (!SIGNS.has(sign) || !TIMES.has(time) || !INPUTS.has(input)) {
-    return { settings: null, error: 'Please fill in all settings.' };
-  }
-
   return {
-    settings: { rule, step, start, sign, time, input },
+    settings: { mode: 'custom', rule, step, start, ...display },
     error: null,
   };
 }
 
 /**
  * Populate the settings modal form from a settings object.
+ * `savedLevel` preselects the level dropdown in custom mode.
  */
-export function applySettingsToForm(form, settings) {
+export function applySettingsToForm(form, settings, savedLevel = 1) {
+  const modeInput = form.querySelector(`input[name="mode"][value="${settings.mode}"]`);
+  if (modeInput) modeInput.checked = true;
+
+  form.level.value = String(settings.level ?? savedLevel);
   form.start.value = settings.start;
 
   for (const checkbox of form.querySelectorAll('input[name="rule"]')) {

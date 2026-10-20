@@ -51,6 +51,14 @@ Then open:
 
    The root URL redirects to the Mathematics tab.
 
+## Coins and levels
+
+A profile in `localStorage` (`kid.profile`, see `js/profile.js`) keeps the shared purse and choices, plus every game’s finished levels. The home page shows how many levels are finished in each game. Choices saved on the profile are whether the timer is on, whether results show correct answers only or correct and wrong, and whether answers are typed or multiple choice. A game page uses those choices unless its URL sets them; pressing **Go** in Settings writes the radios back to the profile.
+
+Every game has a level ladder (`js/*-levels.js`). Any level can be played. Finishing one marks it done (10 correct in a row for question games, 3 finished boards for Latin Square, Find a Llama, and Find a Match), and the next level opens. A finished level stays marked done and can be played again.
+
+Correct answers on a level that is not finished yet pay coins into the profile purse, shared by all games and kept across visits. Coins fly from the answer into the purse in the top bar. Payout is the level number on short ladders, 1–5 spread across long ladders, plus a fire-streak bonus (3, 5, 10, 20 in a row add 1, 2, 3, 5). Board games pay per pair (Find a Match) or 3× the level coins per solved board. Custom settings, wrong answers, and a repeat of a finished level pay nothing. Shared code: `js/coins.js` (purse and animation) and `js/level-progress.js` (ladder logic).
+
 ## Subjects / tabs
 
 The tab bar at the top switches subjects. Each subject is a folder with its own `index.html` and URL settings.
@@ -98,7 +106,7 @@ Level mode is the default. The ladder lives in `js/levels.js` and climbs in smal
 
 - **Auto-increase:** after 10 correct answers in a row (`LEVEL_UP_TARGET` in `js/levels.js`), the level goes up. A wrong answer restarts the count. The top bar shows the level number and progress (e.g. `4/10`), and the level name appears above the question.
 - **Resume:** the current level and progress are saved in `localStorage`, so opening `/math/` again continues where the child left off.
-- **Pick a level:** in Settings choose **Level** and any level from the list. Changing the level restarts the progress count.
+- **Level list:** in Settings the ladder shows every level, and any of them can be played. A finished level shows a check. Playing it again does not earn coins. Custom mode is for practice outside the ladder.
 - Levels are plain data — reorder, split, or add entries in `LEVELS` to change the ladder.
 
 ### URL settings
@@ -233,7 +241,7 @@ Level mode is the default. The ladder lives in `js/latin-levels.js` (15 levels):
 
 - **Auto-increase:** after 3 solved puzzles at a level (`LATIN_LEVEL_UP_TARGET`), the level goes up and the win sign says so. The top bar shows the level and progress (e.g. `2/3`), and the level name appears above the grid.
 - **Resume:** the level and progress are saved in `localStorage` (`kidLatin.*` keys), so opening `/latin/` again continues where the child left off.
-- **Pick a level:** in Settings choose **Level** and any level from the list. Changing the level restarts the progress count.
+- **Level list:** in Settings the ladder shows every level, and any of them can be played. A finished level shows a check. Playing it again does not earn coins. Custom mode is for practice outside the ladder.
 
 ### Custom mode
 
@@ -278,7 +286,7 @@ Level mode is the default. The ladder lives in `js/llama-levels.js` (8 levels): 
 
 - **Auto-increase:** after 3 solved fields at a level (`LLAMA_LEVEL_UP_TARGET`), the level goes up. Lost rounds don't change the progress.
 - **Resume:** the level and progress are saved in `localStorage` (`kidLlama.*` keys).
-- **Pick a level** or switch to **Custom** (any size and color shape, no level progress) in Settings.
+- **Level list:** any level can be played. A finished level shows a check, and playing it again does not earn coins. Switch to **Custom** (any size and color shape, no level progress) to practice outside the ladder.
 
 ### URL settings
 

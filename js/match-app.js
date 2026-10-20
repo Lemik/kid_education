@@ -1,3 +1,4 @@
+import { cheer } from './profile.js';
 import {
   parseSettingsFromUrl,
   settingsToUrl,
@@ -5,9 +6,13 @@ import {
   applySettingsToForm,
   mixHintText,
   promptText,
+  isLevelMode,
+  buildLevelSettings,
 } from './match-settings.js';
 import { generateBoard } from './match-generator.js';
+import { MATCH_LEVELS, MATCH_LEVEL_UP_TARGET } from './match-levels.js';
 import { commitSettingsChange } from './apply-settings.js';
+import { createLadder, createLevelStore } from './level-progress.js';
 
 const MISMATCH_MS = 800;
 
@@ -32,9 +37,24 @@ const els = {
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
   timeLimitField: document.getElementById('timeLimitField'),
   mixHint: document.getElementById('mixHint'),
+  levelFields: document.getElementById('levelFields'),
+  levelSelect: document.getElementById('settingLevel'),
+  levelHint: document.getElementById('levelHint'),
+  customFields: document.getElementById('customFields'),
+  levelWrap: document.getElementById('levelWrap'),
+  levelValue: document.getElementById('levelValue'),
+  levelProgress: document.getElementById('levelProgress'),
+  levelLabel: document.getElementById('levelLabel'),
 };
 
-let settings = parseSettingsFromUrl();
+const ladder = createLadder({
+  levels: MATCH_LEVELS,
+  target: MATCH_LEVEL_UP_TARGET,
+  store: createLevelStore('match'),
+});
+
+let settings = parseSettingsFromUrl(window.location.search, ladder.saved());
+let levelMessage = null;
 let cards = [];
 let pendingIndex = null;
 let pairsFound = 0;
@@ -83,7 +103,7 @@ function showSign(kind) {
   if (kind === 'win') {
     els.signEmoji.textContent = '🎉';
     els.signTitle.textContent = 'Congratulations!';
-    els.signDetail.textContent = `You found all ${total} pairs.`;
+    els.signDetail.textContent = `You found all ${total} pairs.${levelMessage ? ` ${levelMessage}` : ''}`;
   } else {
     els.signEmoji.textContent = '⏱️';
     els.signTitle.textContent = "Time's up!";
@@ -241,7 +261,46 @@ function endRound(kind) {
     card.mismatch = false;
     syncCard(index);
   });
+  levelMessage = kind === 'win' ? recordLevelWin() : null;
+  updateLevelDisplay();
   showSign(kind);
+}
+
+function updateLevelDisplay() {
+  ladder.render(
+    { wrap: els.levelWrap, value: els.levelValue, progress: els.levelProgress, label: els.levelLabel },
+    settings.level,
+    isLevelMode(settings),
+  );
+}
+
+/** Use the chosen level. Any level on the ladder can be played. */
+function clampToUnlocked(next) {
+  if (!isLevelMode(next)) return next;
+  const level = ladder.resolve(next.level);
+  return level === next.level ? next : buildLevelSettings(level, next);
+}
+
+/** Count a finished board toward the next level; returns a message on level-up. */
+function recordLevelWin() {
+  if (!isLevelMode(settings)) return null;
+  const result = ladder.recordWin(settings.level);
+  if (!result) return null;
+  if (result.mastered) return cheer(`You mastered the top level — ${settings.label}!`);
+
+  settings = buildLevelSettings(result.next, settings);
+  history.replaceState(null, '', settingsToUrl(settings));
+  return cheer(`Level up! Level ${settings.level} — ${settings.label}`);
+}
+
+function populateLevelSelect() {
+  ladder.fillSelect(els.levelSelect);
+}
+
+function updateModeFields() {
+  const levelMode = els.settingsForm.querySelector('input[name="mode"]:checked')?.value === 'level';
+  els.levelFields.hidden = !levelMode;
+  els.customFields.hidden = levelMode;
 }
 
 function onCardClick(index) {
@@ -270,6 +329,9 @@ function onCardClick(index) {
     syncCard(index);
     pairsFound += 1;
     updateFound();
+    if (isLevelMode(settings)) {
+      ladder.pay({ level: settings.level, streak: 0, fromEl: els.board.children[index] });
+    }
     if (pairsFound === pairTotal()) {
       endRound('win');
     }
@@ -315,9 +377,11 @@ function startRound() {
   pairsFound = 0;
   ended = false;
   busy = false;
+  levelMessage = null;
   hideSign();
   els.prompt.textContent = promptText(settings);
   updateFound();
+  updateLevelDisplay();
   renderBoard();
   startTimer();
 }
@@ -337,18 +401,20 @@ function syncSettingsFormHints() {
   const timeInput = els.settingsForm.querySelector('input[name="time"]:checked');
   els.timeLimitField.hidden = !timeInput || timeInput.value !== 'y';
   els.mixHint.textContent = mixHintText(formSnapshot());
+  updateModeFields();
 }
 
 function openSettingsModal() {
   setHelpOpen(false);
-  applySettingsToForm(els.settingsForm, settings);
+  populateLevelSelect();
+  applySettingsToForm(els.settingsForm, settings, ladder.saved());
   syncSettingsFormHints();
   els.settingsError.hidden = true;
   els.settingsError.textContent = '';
   els.settingsModal.hidden = false;
   document.body.classList.add('modal-open');
-  const cardsInput = els.settingsForm.cards;
-  if (cardsInput) cardsInput.focus();
+  const focusTarget = isLevelMode(settings) ? els.levelSelect : els.settingsForm.cards;
+  if (focusTarget) focusTarget.focus();
 }
 
 function closeSettingsModal() {
@@ -363,13 +429,14 @@ function applyNewSettings(next) {
 
 function onSettingsSubmit(event) {
   event.preventDefault();
-  const { settings: next, error } = readSettingsFromForm(els.settingsForm);
+  const { settings: picked, error } = readSettingsFromForm(els.settingsForm);
   if (error) {
     els.settingsError.hidden = false;
     els.settingsError.textContent = error;
     return;
   }
 
+  const next = clampToUnlocked(picked);
   commitSettingsChange(next, settingsToUrl, () => {});
   applyNewSettings(next);
   closeSettingsModal();
@@ -412,7 +479,11 @@ function bindEvents() {
 }
 
 function init() {
-  settings = parseSettingsFromUrl();
+  settings = clampToUnlocked(parseSettingsFromUrl(window.location.search, ladder.saved()));
+  populateLevelSelect();
+  if (isLevelMode(settings)) {
+    history.replaceState(null, '', settingsToUrl(settings));
+  }
   bindEvents();
   startRound();
 }

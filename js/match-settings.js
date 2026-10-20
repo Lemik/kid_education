@@ -1,10 +1,14 @@
 import { maxPairs } from './match-generator.js';
+import { MATCH_LEVELS } from './match-levels.js';
+import { presetLevelSettings } from './level-progress.js';
+import { withProfileSelections } from './profile.js';
 
 const TIMES = new Set(['y', 'n']);
 const MIXES = new Set(['y', 'n']);
 const LIMITS = new Set([15, 30, 60, 120, 180, 300, 600]);
 
-export const DEFAULT_SETTINGS = Object.freeze({
+export const DEFAULT_SETTINGS = withProfileSelections({
+  mode: 'custom',
   cards: 12,
   pictures: true,
   numbers: false,
@@ -52,28 +56,51 @@ function parseLimit(raw) {
   return LIMITS.has(value) ? value : DEFAULT_SETTINGS.limit;
 }
 
+export function isLevelMode(settings) {
+  return settings?.mode === 'level';
+}
+
+/** Choices that apply in both modes. */
+function displayPrefs(raw) {
+  return {
+    time: TIMES.has(raw.time) ? raw.time : DEFAULT_SETTINGS.time,
+    limit: parseLimit(raw.limit),
+  };
+}
+
+export function buildLevelSettings(level, display = DEFAULT_SETTINGS) {
+  return presetLevelSettings(MATCH_LEVELS, level, displayPrefs(display));
+}
+
 /**
  * Parse settings from the current URL query string.
- * Invalid values fall back to defaults.
+ * Custom mode when any of `cards`, `kind`, or `mix` is set without `level`;
+ * otherwise level mode at `level` (or `savedLevel`). Invalid values fall back to defaults.
  */
-export function parseSettingsFromUrl(search = window.location.search) {
+export function parseSettingsFromUrl(search = window.location.search, savedLevel = 1) {
   const params = new URLSearchParams(search);
+  const display = { time: params.get('time'), limit: params.get('limit') };
+  const hasCustom = ['cards', 'kind', 'mix'].some((key) => params.has(key));
+
+  if (params.has('level') || !hasCustom) {
+    return buildLevelSettings(params.get('level') ?? savedLevel, display);
+  }
+
   const kinds = parseKinds(params.get('kind'));
   const mix = params.get('mix');
-  const time = params.get('time');
 
   const settings = {
+    mode: 'custom',
     cards: parseCards(params.get('cards')),
     pictures: kinds.pictures,
     numbers: kinds.numbers,
     words: kinds.words,
     mix: MIXES.has(mix) ? mix : DEFAULT_SETTINGS.mix,
-    time: TIMES.has(time) ? time : DEFAULT_SETTINGS.time,
-    limit: parseLimit(params.get('limit')),
+    ...displayPrefs(display),
   };
 
   if (maxPairs(settings) * 2 < settings.cards) {
-    return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_SETTINGS, ...displayPrefs(display) };
   }
 
   return settings;
@@ -92,9 +119,13 @@ function kindsQuery(settings) {
  */
 export function settingsToQuery(settings) {
   const params = new URLSearchParams();
-  params.set('cards', String(settings.cards));
-  params.set('kind', kindsQuery(settings));
-  params.set('mix', settings.mix);
+  if (isLevelMode(settings)) {
+    params.set('level', String(settings.level));
+  } else {
+    params.set('cards', String(settings.cards));
+    params.set('kind', kindsQuery(settings));
+    params.set('mix', settings.mix);
+  }
   params.set('time', settings.time);
   params.set('limit', String(settings.limit));
   return params.toString();
@@ -131,11 +162,20 @@ function validatePairPool(settings) {
  */
 export function readSettingsFromForm(form) {
   const data = new FormData(form);
+  const mode = String(data.get('mode') ?? '');
   const cards = Number(data.get('cards'));
   const kinds = data.getAll('kind').map(String);
   const mix = String(data.get('mix') ?? '');
   const time = String(data.get('time') ?? '');
   const limit = Number(data.get('limit'));
+
+  if (!TIMES.has(time) || !LIMITS.has(limit)) {
+    return { settings: null, error: 'Please fill in all settings.' };
+  }
+
+  if (mode === 'level') {
+    return { settings: buildLevelSettings(data.get('level'), { time, limit }), error: null };
+  }
 
   if (!Number.isInteger(cards) || cards < 6 || cards > 100 || cards % 2 !== 0) {
     return { settings: null, error: 'Choose an even number of cards from 6 to 100.' };
@@ -149,11 +189,11 @@ export function readSettingsFromForm(form) {
     return { settings: null, error: 'Pick at least one of pictures, numbers, or words.' };
   }
 
-  if (!MIXES.has(mix) || !TIMES.has(time) || !LIMITS.has(limit)) {
+  if (!MIXES.has(mix)) {
     return { settings: null, error: 'Please fill in all settings.' };
   }
 
-  const settings = { cards, pictures, numbers, words, mix, time, limit };
+  const settings = { mode: 'custom', cards, pictures, numbers, words, mix, time, limit };
   const error = validatePairPool(settings);
   if (error) {
     return { settings: null, error };
@@ -164,8 +204,13 @@ export function readSettingsFromForm(form) {
 
 /**
  * Populate the settings modal form from a settings object.
+ * `savedLevel` preselects the level dropdown in custom mode.
  */
-export function applySettingsToForm(form, settings) {
+export function applySettingsToForm(form, settings, savedLevel = 1) {
+  const modeInput = form.querySelector(`input[name="mode"][value="${settings.mode}"]`);
+  if (modeInput) modeInput.checked = true;
+
+  form.level.value = String(settings.level ?? savedLevel);
   form.cards.value = String(settings.cards);
 
   const pictureInput = form.querySelector('input[name="kind"][value="pic"]');

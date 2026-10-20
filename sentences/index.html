@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kid Sentences Practice</title>
   <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/png" href="../favicon.png" />
 </head>
 <body>
   <div class="app">
@@ -34,6 +35,11 @@
         <span class="timer" id="timer" aria-live="polite">00:00</span>
       </div>
       <div class="top-bar-spacer"></div>
+      <div class="score-wrap level-wrap" id="levelWrap" hidden>
+        <span class="score-label">Level</span>
+        <span class="score" id="levelValue">1</span>
+        <span class="level-progress" id="levelProgress" aria-live="polite">0/10</span>
+      </div>
       <div class="score-wrap">
         <span class="score-label">Score</span>
         <span class="score" id="score" aria-live="polite">0</span>
@@ -48,6 +54,7 @@
     </header>
 
     <main class="main">
+      <p class="level-label" id="levelLabel" hidden></p>
       <div class="sentence-display" id="sentenceDisplay" aria-live="polite">Loading…</div>
 
       <div class="answer-area" id="answerArea">
@@ -75,17 +82,36 @@
       <h2 id="settingsTitle">Settings</h2>
 
       <form id="settingsForm" class="settings-form">
-        <label class="field">
-          <span>Word length</span>
-          <select name="len" id="settingLen">
-            <option value="3">3 letters</option>
-            <option value="4">4 letters</option>
-            <option value="5">5 letters</option>
-            <option value="6">6 letters</option>
-            <option value="3-5">3–5 letters</option>
-            <option value="4-6">4–6 letters</option>
-          </select>
-        </label>
+        <fieldset class="field">
+          <legend>Practice mode</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="mode" value="level" /> Level</label>
+            <label><input type="radio" name="mode" value="custom" /> Custom</label>
+          </div>
+        </fieldset>
+
+        <div id="levelFields" hidden>
+          <label class="field">
+            <span>Level</span>
+            <select name="level" id="settingLevel"></select>
+          </label>
+          <p class="field-hint" id="levelHint"></p>
+        </div>
+
+        <div id="customFields" class="settings-form" hidden>
+          <label class="field">
+            <span>Word length</span>
+            <select name="len" id="settingLen">
+              <option value="3">3 letters</option>
+              <option value="4">4 letters</option>
+              <option value="5">5 letters</option>
+              <option value="6">6 letters</option>
+              <option value="3-5">3–5 letters</option>
+              <option value="4-6">4–6 letters</option>
+            </select>
+          </label>
+          <p class="field-hint">Custom practice earns no coins.</p>
+        </div>
 
         <fieldset class="field">
           <legend>Show results</legend>
@@ -122,6 +148,41 @@
   </div>
 
   <div class="nav-backdrop" id="navBackdrop" hidden></div>
+
+  <footer class="site-footer">
+    <p class="site-footer__mark">
+      <a href="https://leonid.dushyn.com" target="_blank" rel="noopener noreferrer">
+        <img src="../favicon.png" alt="Leonid Dushyn" width="48" height="48" />
+      </a>
+    </p>
+    <p class="site-footer__support">
+      <a
+        class="coffee-link"
+        href="https://ko-fi.com/dushyn"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <svg
+          class="coffee-link__icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M10 2v2" />
+          <path d="M14 2v2" />
+          <path d="M6 2v2" />
+          <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1" />
+        </svg>
+        Buy me a coffee
+      </a>
+    </p>
+  </footer>
 
   <script type="module" src="../js/nav.js"></script>
   <script type="module" src="../js/sentences-app.js"></script>
