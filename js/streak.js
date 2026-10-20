@@ -1,3 +1,5 @@
+import { cheer, getName } from './profile.js';
+
 let streak = 0;
 let dismissTimeout = null;
 let counterEl = null;
@@ -5,12 +7,12 @@ let counterValueEl = null;
 let popEl = null;
 
 const ENCOURAGEMENT = [
-  'Nice try! Start a new streak!',
-  "You've got this!",
-  "Almost! Let's go again!",
-  'Keep practicing — you can do it!',
-  'No worries — next one!',
-  'Shake it off and try again!',
+  ['Nice try! Start a new streak!', (name) => `Nice try, ${name}! Start a new streak!`],
+  ["You've got this!", (name) => `You've got this, ${name}!`],
+  ["Almost! Let's go again!", (name) => `Almost, ${name}! Let's go again!`],
+  ['Keep practicing — you can do it!', (name) => `Keep practicing, ${name} — you can do it!`],
+  ['No worries — next one!', (name) => `No worries, ${name} — next one!`],
+  ['Shake it off and try again!', (name) => `Shake it off, ${name}, and try again!`],
 ];
 
 const SUPPORT_EMOJIS = ['💪', '🙌', '🌈', '🍀', '🚀', '🐢', '❤️', '🌟', '🤗'];
@@ -19,6 +21,16 @@ const CELEBRATION_EMOJIS = ['⭐', '✨', '🎉', '🔥', '💫', '🏆', '🎊'
 
 function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
+}
+
+function line(plain, personal) {
+  const name = getName();
+  return name ? personal(name) : plain;
+}
+
+function encourage() {
+  const [plain, personal] = pick(ENCOURAGEMENT);
+  return line(plain, personal);
 }
 
 function ensureDom() {
@@ -153,21 +165,21 @@ function showPopup({ message, tier, extras }) {
 function milestoneFor(n) {
   if (n === 2) {
     return {
-      message: 'Streak!',
+      message: line('Streak!', (name) => `Streak, ${name}!`),
       tier: 'small',
       extras: makeFlameRow(1),
     };
   }
   if (n === 3) {
     return {
-      message: '3 in a row!',
+      message: line('3 in a row!', (name) => `3 in a row, ${name}!`),
       tier: 'small',
       extras: makeFlameRow(2),
     };
   }
   if (n === 4) {
     return {
-      message: 'Keep going!',
+      message: line('Keep going!', (name) => `Hey ${name}, keep going!`),
       tier: 'small',
       extras: makeFlameRow(3),
     };
@@ -181,14 +193,14 @@ function milestoneFor(n) {
     star.setAttribute('aria-hidden', 'true');
     extras.appendChild(star);
     return {
-      message: 'You earned a star!',
+      message: line('You earned a star!', (name) => `Good job, ${name}! You earned a star!`),
       tier: 'small',
       extras,
     };
   }
   if (n >= 6 && n <= 9) {
     return {
-      message: `${n} in a row!`,
+      message: line(`${n} in a row!`, (name) => `${n} in a row, ${name}!`),
       tier: 'small',
       extras: makeFlameRow(n - 4),
     };
@@ -202,7 +214,7 @@ function milestoneFor(n) {
     trophy.setAttribute('aria-hidden', 'true');
     extras.appendChild(trophy);
     return {
-      message: `Unstoppable! ${n}!`,
+      message: line(`Unstoppable! ${n}!`, (name) => `Unstoppable, ${name}! ${n}!`),
       tier: 'huge',
       extras,
     };
@@ -211,7 +223,7 @@ function milestoneFor(n) {
     const extras = document.createDocumentFragment();
     extras.appendChild(makeBurst(CELEBRATION_EMOJIS, 8));
     return {
-      message: `Amazing! ${n} in a row!`,
+      message: line(`Amazing! ${n} in a row!`, (name) => `Amazing, ${name}! ${n} in a row!`),
       tier: 'big',
       extras,
     };
@@ -227,6 +239,7 @@ export function recordCorrect() {
   if (milestone) {
     showPopup(milestone);
   }
+  return streak;
 }
 
 export function isHotStreak() {
@@ -235,8 +248,9 @@ export function isHotStreak() {
 
 /** Wrap correct feedback with fire once the streak hits 10+. */
 export function withStreakFire(message) {
-  if (!isHotStreak()) return message;
-  return `🔥 ${message} 🔥`;
+  const text = cheer(message);
+  if (!isHotStreak()) return text;
+  return `🔥 ${text} 🔥`;
 }
 
 export function recordWrong() {
@@ -248,7 +262,7 @@ export function recordWrong() {
 
   const emoji = pick(SUPPORT_EMOJIS);
   showPopup({
-    message: pick(ENCOURAGEMENT),
+    message: encourage(),
     tier: 'lost',
     extras: makeFloatEmojis(emoji, 5),
   });

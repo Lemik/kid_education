@@ -1,4 +1,5 @@
 import { clampLevel, getLevel } from './levels.js';
+import { withProfileSelections } from './profile.js';
 
 const DIGIT_SPECS = new Set(['1', '2', '3', '4', '2-3', '2-4']);
 const OPS = new Set(['+', '-', '*', '/']);
@@ -9,7 +10,7 @@ const LAYOUTS = new Set(['side', 'column']);
 const MISSINGS = new Set(['y', 'n']);
 const MODES = new Set(['level', 'default']);
 
-export const DEFAULT_SETTINGS = Object.freeze({
+export const DEFAULT_SETTINGS = withProfileSelections({
   mode: 'default',
   a: '1',
   b: '1',
@@ -39,7 +40,7 @@ export function buildLevelSettings(level, display = DEFAULT_SETTINGS) {
     a: '1',
     b: '1',
     op: [...spec.ops],
-    sign: 'positive',
+    sign: SIGNS.has(display.sign) ? display.sign : DEFAULT_SETTINGS.sign,
     time: TIMES.has(display.time) ? display.time : DEFAULT_SETTINGS.time,
     input: INPUTS.has(display.input) ? display.input : DEFAULT_SETTINGS.input,
     layout: LAYOUTS.has(display.layout) ? display.layout : DEFAULT_SETTINGS.layout,
@@ -168,7 +169,7 @@ export function readSettingsFromForm(form) {
       return { settings: null, error: 'Please fill in all settings.' };
     }
     return {
-      settings: buildLevelSettings(data.get('level'), { time, input, layout }),
+      settings: buildLevelSettings(data.get('level'), { sign, time, input, layout }),
       error: null,
     };
   }

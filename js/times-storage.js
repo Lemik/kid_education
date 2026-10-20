@@ -1,9 +1,9 @@
+import { getGameProgress, markLevelDone, setGameProgress } from './profile.js';
+
 const SCORE_KEY = 'kidTimes.score';
 const WRONG_KEY = 'kidTimes.wrong';
 const STARTED_AT_KEY = 'kidTimes.startedAt';
-// Level progress persists across visits (localStorage), unlike the session score.
-const LEVEL_KEY = 'kidTimes.level';
-const LEVEL_STREAK_KEY = 'kidTimes.levelStreak';
+const GAME = 'times';
 
 function readNumber(key, fallback = 0, store = sessionStorage) {
   const raw = store.getItem(key);
@@ -46,20 +46,32 @@ export function getOrCreateStartedAt() {
 }
 
 export function getSavedLevel() {
-  return Math.max(1, Math.floor(readNumber(LEVEL_KEY, 1, localStorage)));
+  return getGameProgress(GAME).level;
 }
 
 export function setSavedLevel(level) {
-  localStorage.setItem(LEVEL_KEY, String(Math.max(1, Math.floor(level))));
+  setGameProgress(GAME, { level });
 }
 
 /** Correct answers in a row at the current level. */
 export function getLevelStreak() {
-  return Math.max(0, Math.floor(readNumber(LEVEL_STREAK_KEY, 0, localStorage)));
+  return getGameProgress(GAME).streak;
 }
 
 export function setLevelStreak(count) {
-  localStorage.setItem(LEVEL_STREAK_KEY, String(Math.max(0, Math.floor(count))));
+  setGameProgress(GAME, { streak: count });
+}
+
+export function setLevelMastered(done) {
+  setGameProgress(GAME, { mastered: done });
+}
+
+export function getCompletedLevels() {
+  return getGameProgress(GAME).completed;
+}
+
+export function markLevelDoneHere(level) {
+  markLevelDone(GAME, level);
 }
 
 /**

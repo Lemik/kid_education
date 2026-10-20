@@ -1,5 +1,6 @@
 import { clampLevel, getLevel } from './levels.js';
 import { TIMES_LEVELS } from './times-levels.js';
+import { withProfileSelections } from './profile.js';
 
 const ALL_TABLES = Array.from({ length: 12 }, (_, i) => i + 1);
 const MAXES = new Set(['10', '12']);
@@ -8,7 +9,7 @@ const INPUTS = new Set(['answer', 'multichoice']);
 const LAYOUTS = new Set(['side', 'column']);
 const MISSINGS = new Set(['y', 'n']);
 
-export const DEFAULT_SETTINGS = Object.freeze({
+export const DEFAULT_SETTINGS = withProfileSelections({
   tables: [2],
   max: '10',
   missing: 'n',

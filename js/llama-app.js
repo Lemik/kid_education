@@ -1,3 +1,4 @@
+import { cheer } from './profile.js';
 import {
   parseSettingsFromUrl,
   settingsToUrl,
@@ -14,8 +15,28 @@ import {
   setSavedLevel,
   getLevelSolved,
   setLevelSolved,
+  setLevelMastered,
+  getCompletedLevels,
+  markLevelDoneHere,
 } from './llama-storage.js';
 import { commitSettingsChange } from './apply-settings.js';
+import { createLadder } from './level-progress.js';
+
+const BOARD_COIN_MULTIPLIER = 3;
+
+const ladder = createLadder({
+  levels: LLAMA_LEVELS,
+  target: LLAMA_LEVEL_UP_TARGET,
+  store: {
+    getLevel: getSavedLevel,
+    setLevel: setSavedLevel,
+    getStreak: getLevelSolved,
+    setStreak: setLevelSolved,
+    setMastered: setLevelMastered,
+    completed: getCompletedLevels,
+    markDone: markLevelDoneHere,
+  },
+});
 
 /** Two taps on the same square closer than this count as a double-tap. */
 const DOUBLE_TAP_MS = 600;
@@ -107,21 +128,22 @@ function updateStatus() {
 
 function updateLevelDisplay() {
   const levelMode = isLevelMode(settings);
+  ladder.syncPractice(settings.level, levelMode);
   els.levelWrap.hidden = !levelMode;
   els.levelLabel.hidden = !levelMode;
   if (!levelMode) return;
 
   els.levelLabel.textContent = settings.label;
   els.levelValue.textContent = String(settings.level);
-  els.levelProgress.textContent = `${getLevelSolved()}/${LLAMA_LEVEL_UP_TARGET}`;
+  els.levelProgress.textContent = ladder.isDone(settings.level) ? '✓' : ladder.progressText();
   els.levelWrap.title = `Level ${settings.level}: ${settings.label}`;
 }
 
-/** Make `level` the child's current level; switching levels restarts the progress. */
-function saveCurrentLevel(level) {
-  if (getSavedLevel() === level) return;
-  setSavedLevel(level);
-  setLevelSolved(0);
+/** Use the chosen level. Any level on the ladder can be played. */
+function clampToUnlocked(next) {
+  if (!isLevelMode(next)) return next;
+  const level = ladder.resolve(next.level);
+  return level === next.level ? next : buildLevelSettings(level, next.time);
 }
 
 /**
@@ -131,33 +153,22 @@ function saveCurrentLevel(level) {
 function recordLevelSolved() {
   if (!isLevelMode(settings)) return null;
 
-  const solved = getLevelSolved() + 1;
-  if (solved < LLAMA_LEVEL_UP_TARGET) {
-    setLevelSolved(solved);
-    return null;
+  const result = ladder.recordWin(settings.level);
+  if (!result) return null;
+  if (result.mastered) {
+    return cheer(`You mastered the top level — ${settings.label}!`);
   }
 
-  setLevelSolved(0);
-  if (settings.level >= LLAMA_LEVELS.length) {
-    return `You mastered the top level — ${settings.label}!`;
-  }
-
-  settings = buildLevelSettings(settings.level + 1, settings.time);
-  setSavedLevel(settings.level);
+  settings = buildLevelSettings(result.next, settings.time);
   history.replaceState(null, '', settingsToUrl(settings));
-  return `Level up! Level ${settings.level} — ${settings.label}`;
+  return cheer(`Level up! Level ${settings.level} — ${settings.label}`);
 }
 
 function populateLevelSelect() {
-  els.levelSelect.replaceChildren(
-    ...LLAMA_LEVELS.map((level, index) => {
-      const option = document.createElement('option');
-      option.value = String(index + 1);
-      option.textContent = `${index + 1} — ${level.label}`;
-      return option;
-    }),
-  );
-  els.levelHint.textContent = `Moves up a level after ${LLAMA_LEVEL_UP_TARGET} solved fields.`;
+  ladder.fillSelect(els.levelSelect);
+  els.levelHint.textContent =
+    `Moves up a level after ${LLAMA_LEVEL_UP_TARGET} solved fields. ` +
+    'Finished levels show a check. Playing a finished level again does not earn coins.';
 }
 
 function updateModeFields() {
@@ -222,10 +233,14 @@ function win() {
     ? ` in ${formatElapsed(Date.now() - startedAt)}`
     : '';
   const foundText = `You found all ${board.size} llamas${timePart}.`;
+  const earned = isLevelMode(settings)
+    ? ladder.pay({ level: settings.level, fromEl: els.board, multiplier: BOARD_COIN_MULTIPLIER })
+    : 0;
   const levelMessage = recordLevelSolved();
   updateLevelDisplay();
-  setFeedback('All the llamas are found!', 'good');
-  showWinSign(levelMessage ? `${foundText} ${levelMessage}` : foundText);
+  setFeedback(cheer('All the llamas are found!'), 'good');
+  const coinText = earned > 0 ? ` You earned ${earned} coins!` : '';
+  showWinSign(`${foundText}${coinText}${levelMessage ? ` ${levelMessage}` : ''}`);
 }
 
 function lose() {
@@ -246,7 +261,7 @@ function checkLlama(index) {
     if (foundCount === board.size) {
       win();
     } else {
-      setFeedback('You found a llama!', 'good');
+      setFeedback(cheer('You found a llama!'), 'good');
     }
     return;
   }
@@ -348,6 +363,7 @@ function startRound() {
 
 function openSettingsModal() {
   setHelpOpen(false);
+  populateLevelSelect();
   applySettingsToForm(els.settingsForm, settings, getSavedLevel());
   updateModeFields();
   els.settingsError.hidden = true;
@@ -363,16 +379,16 @@ function closeSettingsModal() {
 
 function onSettingsSubmit(event) {
   event.preventDefault();
-  const { settings: next, error } = readSettingsFromForm(els.settingsForm);
+  const { settings: picked, error } = readSettingsFromForm(els.settingsForm);
   if (error) {
     els.settingsError.hidden = false;
     els.settingsError.textContent = error;
     return;
   }
 
+  const next = clampToUnlocked(picked);
   commitSettingsChange(next, settingsToUrl, () => {});
   settings = next;
-  if (isLevelMode(settings)) saveCurrentLevel(settings.level);
   startRound();
   closeSettingsModal();
 }
@@ -411,9 +427,9 @@ function bindEvents() {
 }
 
 function init() {
+  settings = clampToUnlocked(settings);
   populateLevelSelect();
   if (isLevelMode(settings)) {
-    saveCurrentLevel(settings.level);
     history.replaceState(null, '', settingsToUrl(settings));
   }
   bindEvents();

@@ -1,3 +1,4 @@
+import { cheer } from './profile.js';
 import {
   parseSettingsFromUrl,
   settingsToUrl,
@@ -18,10 +19,28 @@ import {
   setSavedLevel,
   getLevelStreak,
   setLevelStreak,
+  setLevelMastered,
+  getCompletedLevels,
+  markLevelDoneHere,
 } from './storage.js';
 import { LEVELS, LEVEL_UP_TARGET } from './levels.js';
 import { commitSettingsChange } from './apply-settings.js';
 import { recordCorrect, recordWrong, withStreakFire, isHotStreak } from './streak.js';
+import { createLadder } from './level-progress.js';
+
+const ladder = createLadder({
+  levels: LEVELS,
+  target: LEVEL_UP_TARGET,
+  store: {
+    getLevel: getSavedLevel,
+    setLevel: setSavedLevel,
+    getStreak: getLevelStreak,
+    setStreak: setLevelStreak,
+    setMastered: setLevelMastered,
+    completed: getCompletedLevels,
+    markDone: markLevelDoneHere,
+  },
+});
 
 const els = {
   timerWrap: document.getElementById('timerWrap'),
@@ -45,7 +64,6 @@ const els = {
   levelFields: document.getElementById('levelFields'),
   levelSelect: document.getElementById('settingLevel'),
   levelHint: document.getElementById('levelHint'),
-  signField: document.getElementById('signField'),
   missingField: document.getElementById('missingField'),
   levelWrap: document.getElementById('levelWrap'),
   levelValue: document.getElementById('levelValue'),
@@ -73,26 +91,27 @@ function updateScoreDisplay() {
   els.score.textContent = String(getScore());
   els.wrongScore.textContent = String(getWrong());
   // "Show results: both" also displays the incorrect-answer count.
-  els.wrongWrap.hidden = settings.sign !== 'both' && !isLevelMode(settings);
+  els.wrongWrap.hidden = settings.sign !== 'both';
 }
 
 function updateLevelDisplay() {
   const levelMode = isLevelMode(settings);
+  ladder.syncPractice(settings.level, levelMode);
   els.levelWrap.hidden = !levelMode;
   els.levelLabel.hidden = !levelMode;
   if (!levelMode) return;
 
   els.levelValue.textContent = String(settings.level);
-  els.levelProgress.textContent = `${getLevelStreak()}/${LEVEL_UP_TARGET}`;
+  els.levelProgress.textContent = ladder.isDone(settings.level) ? '✓' : ladder.progressText();
   els.levelLabel.textContent = settings.spec.label;
   els.levelWrap.title = `Level ${settings.level}: ${settings.spec.label}`;
 }
 
-/** Make `level` the child's current level; switching levels restarts the streak. */
-function saveCurrentLevel(level) {
-  if (getSavedLevel() === level) return;
-  setSavedLevel(level);
-  setLevelStreak(0);
+/** Use the chosen level. Any level on the ladder can be played. */
+function clampToUnlocked(next) {
+  if (!isLevelMode(next)) return next;
+  const level = ladder.resolve(next.level);
+  return level === next.level ? next : buildLevelSettings(level, next);
 }
 
 /**
@@ -102,33 +121,26 @@ function saveCurrentLevel(level) {
 function recordLevelCorrect() {
   if (!isLevelMode(settings)) return null;
 
-  const streak = getLevelStreak() + 1;
-  if (streak < LEVEL_UP_TARGET) {
-    setLevelStreak(streak);
-    return null;
+  const result = ladder.recordWin(settings.level);
+  if (!result) return null;
+  if (result.mastered) {
+    return cheer(`You mastered the top level — ${settings.spec.label}!`);
   }
 
-  setLevelStreak(0);
-  if (settings.level >= LEVELS.length) {
-    return `You mastered the top level — ${settings.spec.label}!`;
-  }
-
-  settings = buildLevelSettings(settings.level + 1, settings);
-  setSavedLevel(settings.level);
+  settings = buildLevelSettings(result.next, settings);
   history.replaceState(null, '', settingsToUrl(settings));
-  return `Level up! Level ${settings.level} — ${settings.spec.label}`;
+  return cheer(`Level up! Level ${settings.level} — ${settings.spec.label}`);
 }
 
 function populateLevelSelect() {
-  els.levelSelect.replaceChildren(
-    ...LEVELS.map((level, index) => {
-      const option = document.createElement('option');
-      option.value = String(index + 1);
-      option.textContent = `${index + 1} — ${level.label}`;
-      return option;
-    }),
-  );
-  els.levelHint.textContent = `Moves up a level after ${LEVEL_UP_TARGET} correct answers in a row.`;
+  ladder.fillSelect(els.levelSelect);
+  els.levelHint.textContent =
+    `Moves up a level after ${LEVEL_UP_TARGET} correct answers in a row. ` +
+    'Finished levels show a check. Playing a finished level again does not earn coins.';
+}
+
+function correctAnswerEl() {
+  return els.choices.querySelector('.choice-btn.selected') ?? els.answerInput;
 }
 
 function clearFeedback() {
@@ -354,7 +366,10 @@ function checkAnswer(rawValue) {
   let levelMessage = null;
   if (correct) {
     incrementScore();
-    recordCorrect();
+    const streak = recordCorrect();
+    if (isLevelMode(settings)) {
+      ladder.pay({ level: settings.level, streak, fromEl: correctAnswerEl() });
+    }
     levelMessage = recordLevelCorrect();
     if (levelMessage) {
       showFeedback(levelMessage, 'correct level-up');
@@ -364,7 +379,7 @@ function checkAnswer(rawValue) {
   } else {
     incrementWrong();
     recordWrong();
-    if (isLevelMode(settings)) setLevelStreak(0);
+    if (isLevelMode(settings)) ladder.recordMiss(settings.level);
     const shown = formatAnswerForFeedback(currentQuestion.answer, currentQuestion.missing);
     showFeedback(`Try again — the answer was ${shown}.`, 'incorrect');
   }
@@ -383,6 +398,7 @@ function onSubmitTyped() {
 }
 
 function openSettingsModal() {
+  populateLevelSelect();
   applySettingsToForm(els.settingsForm, settings, getSavedLevel());
   updateModeFieldLock();
   els.settingsError.hidden = true;
@@ -400,7 +416,6 @@ function updateModeFieldLock() {
   const levelMode = els.settingsForm.querySelector('input[name="mode"]:checked')?.value === 'level';
   els.standardModeFields.hidden = levelMode;
   els.levelFields.hidden = !levelMode;
-  els.signField.hidden = levelMode;
   els.missingField.hidden = levelMode;
 }
 
@@ -408,7 +423,6 @@ function applyNewSettings(next) {
   clearAdvanceTimeout();
   stopTimer();
   settings = next;
-  if (isLevelMode(settings)) saveCurrentLevel(settings.level);
   updateScoreDisplay();
   updateLevelDisplay();
   startTimer();
@@ -418,13 +432,14 @@ function applyNewSettings(next) {
 function onSettingsSubmit(event) {
   event.preventDefault();
 
-  const { settings: next, error } = readSettingsFromForm(els.settingsForm);
+  const { settings: picked, error } = readSettingsFromForm(els.settingsForm);
   if (error) {
     els.settingsError.hidden = false;
     els.settingsError.textContent = error;
     return;
   }
 
+  const next = clampToUnlocked(picked);
   commitSettingsChange(next, settingsToUrl, resetSession);
   applyNewSettings(next);
   closeSettingsModal();
@@ -474,10 +489,9 @@ function redirectLegacyTimesTable() {
 }
 
 function init() {
-  settings = parseSettingsFromUrl(window.location.search, getSavedLevel());
+  settings = clampToUnlocked(parseSettingsFromUrl(window.location.search, getSavedLevel()));
   populateLevelSelect();
   if (isLevelMode(settings)) {
-    saveCurrentLevel(settings.level);
     history.replaceState(null, '', settingsToUrl(settings));
   }
   updateScoreDisplay();
